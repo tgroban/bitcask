@@ -3,6 +3,10 @@
 CGO_ENABLED=0
 VERSION=$(shell git describe --abbrev=0 --tags)
 COMMIT=$(shell git rev-parse --short HEAD)
+BUILD=$(shell git show -s --pretty=format:%cI)
+GOCMD=go
+
+DESTDIR=/usr/local/bin
 
 all: dev
 
@@ -11,21 +15,21 @@ dev: build
 	@./bitcaskd --version
 
 build: clean generate
-	@go build \
+	@$(GOCMD) build \
 		-tags "netgo static_build" -installsuffix netgo \
-		-ldflags "-w -X $(shell go list)/internal.Version=$(VERSION) -X $(shell go list)/internal.Commit=$(COMMIT)" \
+		-ldflags "-w -X $(shell go list)/internal.Version=$(VERSION) -X $(shell go list)/internal.Commit=$(COMMIT) -X $(shell go list)/internal.Build=$(BUILD)" \
 		./cmd/bitcask/...
-	@go build \
+	@$(GOCMD) build \
 		-tags "netgo static_build" -installsuffix netgo \
-		-ldflags "-w -X $(shell go list)/internal.Version=$(VERSION) -X $(shell go list)/internal.Commit=$(COMMIT)" \
+		-ldflags "-w -X $(shell go list)/internal.Version=$(VERSION) -X $(shell go list)/internal.Commit=$(COMMIT) -X $(shell go list)/internal.Build=$(BUILD)" \
 		./cmd/bitcaskd/...
 
 generate:
-	@go generate $(shell go list)/...
+	@$(GOCMD) generate $(shell go list)/...
 
 install: build
-	@go install ./cmd/bitcask/...
-	@go install ./cmd/bitcaskd/...
+	@install -D -m 755 yarnd $(DESTDIR)/bitcask
+	@install -D -m 755 yarnc $(DESTDIR)/bitcaskd
 
 ifeq ($(PUBLISH), 1)
 image:
@@ -40,23 +44,23 @@ release:
 	@./tools/release.sh
 
 profile: build
-	@go test -cpuprofile cpu.prof -memprofile mem.prof -v -bench .
+	@$(GOCMD) test -cpuprofile cpu.prof -memprofile mem.prof -v -bench .
 
 bench: build
-	@go test -v -run=XXX -benchmem -bench=. .
+	@$(GOCMD) test -v -run=XXX -benchmem -bench=. .
 
 mocks:
 	@mockery -all -case underscore -output ./internal/mocks -recursive
 
 test: build
-	@go test -v \
+	@$(GOCMD) test -v \
 		-cover -coverprofile=coverage.txt -covermode=atomic \
 		-coverpkg=$(shell go list) \
 		-race \
 		.
 
 setup:
-	@go get github.com/vektra/mockery/...
+	@$(GOCMD) get github.com/vektra/mockery/...
 
 clean:
 	@git clean -f -d -X
