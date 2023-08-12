@@ -28,8 +28,8 @@ generate:
 	@$(GOCMD) generate $(shell go list)/...
 
 install: build
-	@install -D -m 755 yarnd $(DESTDIR)/bitcask
-	@install -D -m 755 yarnc $(DESTDIR)/bitcaskd
+	@install -D -m 755 bitcask $(DESTDIR)/bitcask
+	@install -D -m 755 bitcaskd $(DESTDIR)/bitcaskd
 
 ifeq ($(PUBLISH), 1)
 image:
