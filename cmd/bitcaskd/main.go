@@ -1,3 +1,4 @@
+// Package main is a simple Bitcask server that implements a basic Redis API
 package main
 
 import (
@@ -7,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 
-	"git.mills.io/prologic/bitcask/internal"
+	"go.mills.io/bitcask/internal"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [options] <dbpath>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s [options] <path>\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 

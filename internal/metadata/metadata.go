@@ -3,7 +3,7 @@ package metadata
 import (
 	"os"
 
-	"git.mills.io/prologic/bitcask/internal"
+	"go.mills.io/bitcask/internal"
 )
 
 type MetaData struct {
@@ -12,11 +12,11 @@ type MetaData struct {
 }
 
 func (m *MetaData) Save(path string, mode os.FileMode) error {
-	return internal.SaveJsonToFile(m, path, mode)
+	return internal.SaveJSONToFile(m, path, mode)
 }
 
 func Load(path string) (*MetaData, error) {
 	var m MetaData
-	err := internal.LoadFromJsonFile(path, &m)
+	err := internal.LoadFromJSONFile(path, &m)
 	return &m, err
 }

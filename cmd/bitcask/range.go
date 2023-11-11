@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
 var rangeCmd = &cobra.Command{
@@ -41,7 +41,7 @@ func _range(path, start, end string) int {
 	}
 	defer db.Close()
 
-	err = db.Range([]byte(start), []byte(end), func(key []byte) error {
+	err = db.Range(bitcask.Key(start), bitcask.Key(end), func(key bitcask.Key) error {
 		value, err := db.Get(key)
 		if err != nil {
 			log.WithError(err).Error("error reading key")

@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
 var errNotAllDataWritten = errors.New("error: not all data written")
@@ -75,7 +75,7 @@ func export(path, output string) int {
 
 	w := os.Stdout
 	if output != "-" {
-		if w, err = os.OpenFile(output, os.O_WRONLY|os.O_CREATE|os.O_EXCL|os.O_TRUNC, 0755); err != nil {
+		if w, err = os.OpenFile(output, os.O_WRONLY|os.O_CREATE|os.O_EXCL|os.O_TRUNC, os.FileMode(644)); err != nil {
 			log.WithError(err).
 				WithField("output", output).
 				Error("error opening output for writing")
@@ -84,7 +84,7 @@ func export(path, output string) int {
 		defer w.Close()
 	}
 
-	if err = db.Fold(exportKey(db, w)); err != nil {
+	if err = db.ForEach(exportKey(db, w)); err != nil {
 		log.WithError(err).
 			WithField("path", path).
 			WithField("output", output).
@@ -94,8 +94,8 @@ func export(path, output string) int {
 	return 0
 }
 
-func exportKey(db *bitcask.Bitcask, w io.Writer) func(key []byte) error {
-	return func(key []byte) error {
+func exportKey(db bitcask.DB, w io.Writer) bitcask.KeyFunc {
+	return func(key bitcask.Key) error {
 		value, err := db.Get(key)
 		if err != nil {
 			log.WithError(err).
@@ -113,7 +113,7 @@ func exportKey(db *bitcask.Bitcask, w io.Writer) func(key []byte) error {
 		if err != nil {
 			log.WithError(err).
 				WithField("key", key).
-				Error("error serialzing key")
+				Error("error serializing key")
 			return err
 		}
 

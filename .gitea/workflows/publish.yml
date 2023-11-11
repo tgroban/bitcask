@@ -1,0 +1,33 @@
+---
+
+name: Publish Image
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: r.mills.io
+  IMAGE: prologic/bitcask
+  TAG: latest
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    - name: Setup Docker Buildx
+      uses: actions/setup-buildx@v2
+    - name: Login to Registry
+      uses: actions/docker-login@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.REGISTRY_USER }}
+        password: ${{ secrets.REGISTRY_PASS }}
+    - name: Build and Push Image
+      uses: actions/docker-build-push@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY}}/${{ env.IMAGE }}:${{ env.TAG }}

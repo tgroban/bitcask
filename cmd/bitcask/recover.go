@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.mills.io/prologic/bitcask"
-	"git.mills.io/prologic/bitcask/internal"
-	"git.mills.io/prologic/bitcask/internal/config"
-	"git.mills.io/prologic/bitcask/internal/data/codec"
-	"git.mills.io/prologic/bitcask/internal/index"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.mills.io/bitcask"
+	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/internal/config"
+	"go.mills.io/bitcask/internal/data/codec"
+	"go.mills.io/bitcask/internal/index"
 )
 
 var recoveryCmd = &cobra.Command{
@@ -68,15 +68,10 @@ func recover(path string, dryRun bool) int {
 }
 
 func recoverIndex(path string, maxKeySize uint32, dryRun bool) error {
-	t, found, err := index.NewIndexer().Load(path, maxKeySize)
+	t, err := index.NewIndexer().Load(path, maxKeySize)
 	if err != nil && !index.IsIndexCorruption(err) {
 		log.WithError(err).Info("opening the index file")
 	}
-	if !found {
-		log.Info("index file doesn't exist, will be recreated on next run.")
-		return nil
-	}
-
 	if err == nil {
 		log.Debug("index file is not corrupted")
 		return nil
@@ -88,7 +83,7 @@ func recoverIndex(path string, maxKeySize uint32, dryRun bool) error {
 		return nil
 	}
 
-	// Leverage that t has the partiatially read tree even on corrupted files
+	// Leverage that t has the partially read tree even on corrupted files
 	err = index.NewIndexer().Save(t, "index.recovered")
 	if err != nil {
 		return fmt.Errorf("writing the recovered index file: %w", err)

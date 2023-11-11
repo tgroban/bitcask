@@ -1,3 +1,4 @@
+// Package codec implements binary encoding and decoding for database entries
 package codec
 
 import (
@@ -6,7 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"git.mills.io/prologic/bitcask/internal"
+
+	"go.mills.io/bitcask/internal"
 )
 
 var (
@@ -24,8 +26,7 @@ func NewDecoder(r io.Reader, maxKeySize uint32, maxValueSize uint64) *Decoder {
 	}
 }
 
-// Decoder wraps an underlying io.Reader and allows you to stream
-// Entry decodings on it.
+// Decoder wraps an underlying io.Reader and allows you to stream entries
 type Decoder struct {
 	r            io.Reader
 	maxKeySize   uint32
@@ -50,13 +51,13 @@ func (d *Decoder) Decode(v *internal.Entry) (int64, error) {
 		return 0, err
 	}
 
-	buf := make([]byte, uint64(actualKeySize)+actualValueSize+checksumSize+ttlSize)
+	buf := make([]byte, uint64(actualKeySize)+actualValueSize+checksumSize)
 	if _, err = io.ReadFull(d.r, buf); err != nil {
 		return 0, errTruncatedData
 	}
 
 	decodeWithoutPrefix(buf, actualKeySize, v)
-	return int64(keySize + valueSize + uint64(actualKeySize) + actualValueSize + checksumSize + ttlSize), nil
+	return int64(keySize + valueSize + uint64(actualKeySize) + actualValueSize + checksumSize), nil
 }
 
 // DecodeEntry decodes a serialized entry
@@ -85,13 +86,12 @@ func getKeyValueSizes(buf []byte, maxKeySize uint32, maxValueSize uint64) (uint3
 
 func decodeWithoutPrefix(buf []byte, valueOffset uint32, v *internal.Entry) {
 	v.Key = buf[:valueOffset]
-	v.Value = buf[valueOffset : len(buf)-checksumSize-ttlSize]
-	v.Checksum = binary.BigEndian.Uint32(buf[len(buf)-checksumSize-ttlSize : len(buf)-ttlSize])
-	v.Expiry = getKeyExpiry(buf)
+	v.Value = buf[valueOffset : len(buf)-checksumSize]
+	v.Checksum = binary.BigEndian.Uint32(buf[len(buf)-checksumSize : len(buf)])
 }
 
 func getKeyExpiry(buf []byte) *time.Time {
-	expiry := binary.BigEndian.Uint64(buf[len(buf)-ttlSize:])
+	expiry := binary.BigEndian.Uint64(buf[len(buf):])
 	if expiry == uint64(0) {
 		return nil
 	}
@@ -99,7 +99,7 @@ func getKeyExpiry(buf []byte) *time.Time {
 	return &t
 }
 
-// IsCorruptedData indicates if the error correspondes to possible data corruption
+// IsCorruptedData indicates if the error corresponds to possible data corruption
 func IsCorruptedData(err error) bool {
 	switch err {
 	case errCantDecodeOnNilEntry, errInvalidKeyOrValueSize, errTruncatedData:

@@ -1,29 +1,27 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/redcon"
 
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
 type server struct {
 	bind string
-	db   *bitcask.Bitcask
+	db   bitcask.DB
 }
 
-func newServer(bind, dbpath string) (*server, error) {
-	db, err := bitcask.Open(dbpath)
+func newServer(bind, path string) (*server, error) {
+	db, err := bitcask.Open(path)
 	if err != nil {
-		log.WithError(err).WithField("dbpath", dbpath).Error("error opening database")
+		log.WithError(err).WithField("path", path).Error("error opening database")
 		return nil, err
 	}
 
@@ -34,34 +32,16 @@ func newServer(bind, dbpath string) (*server, error) {
 }
 
 func (s *server) handleSet(cmd redcon.Command, conn redcon.Conn) {
-	if len(cmd.Args) != 3 && len(cmd.Args) != 4 {
+	if len(cmd.Args) < 3 {
 		conn.WriteError("ERR wrong number of arguments for '" + string(cmd.Args[0]) + "' command")
 		return
 	}
 
-	var ttl *time.Duration
-
 	key := cmd.Args[1]
 	value := cmd.Args[2]
 
-	if len(cmd.Args) == 4 {
-		val, n := binary.Varint(cmd.Args[3])
-		if n <= 0 {
-			conn.WriteError("ERR error parsing ttl")
-			return
-		}
-		d := time.Duration(val) * time.Millisecond
-		ttl = &d
-	}
-
-	if ttl != nil {
-		if err := s.db.PutWithTTL(key, value, *ttl); err != nil {
-			conn.WriteString(fmt.Sprintf("ERR: %s", err))
-		}
-	} else {
-		if err := s.db.Put(key, value); err != nil {
-			conn.WriteString(fmt.Sprintf("ERR: %s", err))
-		}
+	if err := s.db.Put(key, value); err != nil {
+		conn.WriteString(fmt.Sprintf("ERR: %s", err))
 	}
 
 	conn.WriteString("OK")
@@ -94,9 +74,10 @@ func (s *server) handleKeys(cmd redcon.Command, conn redcon.Conn) {
 	// Fast-track condition for improved speed
 	if pattern == "*" {
 		conn.WriteArray(s.db.Len())
-		for key := range s.db.Keys() {
+		s.db.ForEach(func(key bitcask.Key) error {
 			conn.WriteBulk(key)
-		}
+			return nil
+		})
 		return
 	}
 
@@ -105,7 +86,7 @@ func (s *server) handleKeys(cmd redcon.Command, conn redcon.Conn) {
 		prefix := strings.ReplaceAll(pattern, "*", "")
 		count := 0
 		keys := make([][]byte, 0)
-		s.db.Scan([]byte(prefix), func(key []byte) error {
+		s.db.Scan([]byte(prefix), func(key bitcask.Key) error {
 			keys = append(keys, key)
 			count++
 			return nil

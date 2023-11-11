@@ -2,7 +2,6 @@ package internal
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,98 +10,96 @@ import (
 )
 
 func Test_Copy(t *testing.T) {
-	assert := assert.New(t)
 	t.Run("CopyDir", func(t *testing.T) {
-		tempsrc, err := ioutil.TempDir("", "test")
-		assert.NoError(err)
-		defer os.RemoveAll(tempsrc)
+		tempSrc, err := os.MkdirTemp("", "test")
+		assert.NoError(t, err)
+		defer os.RemoveAll(tempSrc)
 		var f *os.File
 
-		tempdir, err := ioutil.TempDir(tempsrc, "")
-		assert.NoError(err)
+		tempDir, err := os.MkdirTemp(tempSrc, "")
+		assert.NoError(t, err)
 
-		f, err = os.OpenFile(filepath.Join(tempsrc, "file1"), os.O_WRONLY|os.O_CREATE, 0755)
-		assert.NoError(err)
+		f, err = os.OpenFile(filepath.Join(tempSrc, "file1"), os.O_WRONLY|os.O_CREATE, os.FileMode(644))
+		assert.NoError(t, err)
 		n, err := f.WriteString("test123")
-		assert.Equal(7, n)
-		assert.NoError(err)
+		assert.Equal(t, 7, n)
+		assert.NoError(t, err)
 		f.Close()
 
-		f, err = os.OpenFile(filepath.Join(tempsrc, "file2"), os.O_WRONLY|os.O_CREATE, 0755)
-		assert.NoError(err)
+		f, err = os.OpenFile(filepath.Join(tempSrc, "file2"), os.O_WRONLY|os.O_CREATE, os.FileMode(644))
+		assert.NoError(t, err)
 		n, err = f.WriteString("test1234")
-		assert.Equal(8, n)
-		assert.NoError(err)
+		assert.Equal(t, 8, n)
+		assert.NoError(t, err)
 		f.Close()
 
-		f, err = os.OpenFile(filepath.Join(tempsrc, "file3"), os.O_WRONLY|os.O_CREATE, 0755)
-		assert.NoError(err)
+		f, err = os.OpenFile(filepath.Join(tempSrc, "file3"), os.O_WRONLY|os.O_CREATE, os.FileMode(644))
+		assert.NoError(t, err)
 		f.Close()
 
-		tempdst, err := ioutil.TempDir("", "backup")
-		assert.NoError(err)
-		defer os.RemoveAll(tempdst)
-		err = Copy(tempsrc, tempdst, []string{"file3"})
-		assert.NoError(err)
+		tempDest, err := os.MkdirTemp("", "backup")
+		assert.NoError(t, err)
+		defer os.RemoveAll(tempDest)
+		err = Copy(tempSrc, tempDest, []string{"file3"})
+		assert.NoError(t, err)
 		buf := make([]byte, 10)
 
-		exists := Exists(filepath.Join(tempdst, filepath.Base(tempdir)))
-		assert.Equal(true, exists)
+		exists := Exists(filepath.Join(tempDest, filepath.Base(tempDir)))
+		assert.Equal(t, true, exists)
 
-		f, err = os.Open(filepath.Join(tempdst, "file1"))
-		assert.NoError(err)
+		f, err = os.Open(filepath.Join(tempDest, "file1"))
+		assert.NoError(t, err)
 		n, err = f.Read(buf[:7])
-		assert.NoError(err)
-		assert.Equal(7, n)
-		assert.Equal([]byte("test123"), buf[:7])
+		assert.NoError(t, err)
+		assert.Equal(t, 7, n)
+		assert.Equal(t, []byte("test123"), buf[:7])
 		_, err = f.Read(buf)
-		assert.Equal(io.EOF, err)
+		assert.Equal(t, io.EOF, err)
 		f.Close()
 
-		f, err = os.Open(filepath.Join(tempdst, "file2"))
-		assert.NoError(err)
+		f, err = os.Open(filepath.Join(tempDest, "file2"))
+		assert.NoError(t, err)
 		n, err = f.Read(buf[:8])
-		assert.NoError(err)
-		assert.Equal(8, n)
-		assert.Equal([]byte("test1234"), buf[:8])
+		assert.NoError(t, err)
+		assert.Equal(t, 8, n)
+		assert.Equal(t, []byte("test1234"), buf[:8])
 		_, err = f.Read(buf)
-		assert.Equal(io.EOF, err)
+		assert.Equal(t, io.EOF, err)
 		f.Close()
 
-		exists = Exists(filepath.Join(tempdst, "file3"))
-		assert.Equal(false, exists)
+		exists = Exists(filepath.Join(tempDest, "file3"))
+		assert.Equal(t, false, exists)
 	})
 }
 
 func Test_SaveAndLoad(t *testing.T) {
-	assert := assert.New(t)
 	t.Run("save and load", func(t *testing.T) {
-		tempdir, err := ioutil.TempDir("", "bitcask")
-		assert.NoError(err)
-		defer os.RemoveAll(tempdir)
+		tempDir, err := os.MkdirTemp("", "bitcask")
+		assert.NoError(t, err)
+		defer os.RemoveAll(tempDir)
 		type test struct {
 			Value bool `json:"value"`
 		}
 		m := test{Value: true}
-		err = SaveJsonToFile(&m, filepath.Join(tempdir, "meta.json"), 0755)
-		assert.NoError(err)
+		err = SaveJSONToFile(&m, filepath.Join(tempDir, "meta.json"), os.FileMode(644))
+		assert.NoError(t, err)
 		m1 := test{}
-		err = LoadFromJsonFile(filepath.Join(tempdir, "meta.json"), &m1)
-		assert.NoError(err)
-		assert.Equal(m, m1)
+		err = LoadFromJSONFile(filepath.Join(tempDir, "meta.json"), &m1)
+		assert.NoError(t, err)
+		assert.Equal(t, m, m1)
 	})
 
 	t.Run("save and load error", func(t *testing.T) {
-		tempdir, err := ioutil.TempDir("", "bitcask")
-		assert.NoError(err)
-		defer os.RemoveAll(tempdir)
+		tempDir, err := os.MkdirTemp("", "bitcask")
+		assert.NoError(t, err)
+		defer os.RemoveAll(tempDir)
 		type test struct {
 			Value bool `json:"value"`
 		}
-		err = SaveJsonToFile(make(chan int), filepath.Join(tempdir, "meta.json"), 0755)
-		assert.Error(err)
+		err = SaveJSONToFile(make(chan int), filepath.Join(tempDir, "meta.json"), os.FileMode(644))
+		assert.Error(t, err)
 		m1 := test{}
-		err = LoadFromJsonFile(filepath.Join(tempdir, "meta.json"), &m1)
-		assert.Error(err)
+		err = LoadFromJSONFile(filepath.Join(tempDir, "meta.json"), &m1)
+		assert.Error(t, err)
 	})
 }

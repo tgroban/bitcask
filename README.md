@@ -1,16 +1,16 @@
 # bitcask
 
 [![Build Status](https://ci.mills.io/api/badges/prologic/bitcask/status.svg)](https://ci.mills.io/prologic/bitcask)
-[![Go Report Card](https://goreportcard.com/badge/git.mills.io/prologic/bitcask)](https://goreportcard.com/report/git.mills.io/prologic/bitcask)
-[![Go Reference](https://pkg.go.dev/badge/git.mills.io/prologic/bitcask.svg)](https://pkg.go.dev/git.mills.io/prologic/bitcask)
+[![Go Report Card](https://goreportcard.com/badge/go.mills.io/bitcask)](https://goreportcard.com/report/go.mills.io/bitcask)
+[![Go Reference](https://pkg.go.dev/badge/go.mills.io/bitcask.svg)](https://pkg.go.dev/go.mills.io/bitcask)
 
 A high performance Key/Value store written in [Go](https://golang.org) with a predictable read/write performance and high throughput. Uses a [Bitcask](https://en.wikipedia.org/wiki/Bitcask) on-disk layout (LSM+WAL) similar to [Riak](https://riak.com/)
 
-For a more feature-complete Redis-compatible server, distributed key/value store have a look at [Bitraft](https://git.mills.io/prologic/bitraft) which uses this library as its backend. Use [Bitcask](https://git.mills.io/prologic/bitcask) as a starting point or if you want to embed in your application, use [Bitraft](https://git.mills.io/prologic/bitraft) if you need a complete server/client solution with high availability with a Redis-compatible API.
+For a more feature-complete Redis-compatible server, distributed key/value store have a look at [Bitraft](https://git.mills.io/prologic/bitraft) which uses this library as its backend. Use [Bitcask](https://go.mills.io/bitcask) as a starting point or if you want to embed in your application, use [Bitraft](https://git.mills.io/prologic/bitraft) if you need a complete server/client solution with high availability with a Redis-compatible API.
 
 ## Features
 
-* Embedded (`import "git.mills.io/prologic/bitcask"`)
+* Embedded (`import "go.mills.io/bitcask"`)
 * Builtin CLI (`bitcask`)
 * Builtin Redis-compatible server (`bitcaskd`)
 * Predictable read/write performance
@@ -48,10 +48,8 @@ __NOTE__: Please read this carefully to identify whether using Bitcask is
 `bitcask` is not suited for:
 
 - Storing billions of records
-  The reason for this is the key-space is held in memory using a highly
-  performant and memory optimized adaptive radix tree thanks to
-  [go-adaptive-radix-tree](github.com/plar/go-adaptive-radix-tree) _however_
-  this means the more keys you have in your key space, the more memory is
+  The reason for this is the key-space is held in memory using radix tree.
+  This means the more keys you have in your key space, the more memory is
   consumed. Consider using a disk-backed B-Tree like [BoltDB](https://github.com/boltdb/bolt)
   or [LevelDB](https://github.com/syndtr/goleveldb) if you intend to store a
   large quantity of key/value pairs.
@@ -74,14 +72,14 @@ __NOTE__: Please read this carefully to identify whether using Bitcask is
 ## Development
 
 ```sh
-$ git clone https://git.mills.io/prologic/bitcask.git
+$ git clone https://go.mills.io/bitcask.git
 $ make
 ```
 
 ## Install
 
 ```sh
-$ go get git.mills.io/prologic/bitcask
+$ go get go.mills.io/bitcask
 ```
 
 ## Usage (library)
@@ -89,7 +87,7 @@ $ go get git.mills.io/prologic/bitcask
 Install the package into your project:
 
 ```sh
-$ go get git.mills.io/prologic/bitcask
+$ go get go.mills.io/bitcask
 ```
 
 ```go
@@ -97,7 +95,7 @@ package main
 
 import (
 	"log"
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
 func main() {
@@ -109,7 +107,7 @@ func main() {
 }
 ```
 
-See the [GoDoc](https://godoc.org/git.mills.io/prologic/bitcask) for further
+See the [GoDoc](https://godoc.org/go.mills.io/bitcask) for further
 documentation and other examples.
 
 ## Usage (tool)
@@ -170,7 +168,7 @@ $ make bench
 ...
 goos: darwin
 goarch: amd64
-pkg: git.mills.io/prologic/bitcask
+pkg: go.mills.io/bitcask
 
 BenchmarkGet/128B-4         	  316515	      3263 ns/op	  39.22 MB/s	     160 B/op	       1 allocs/op
 BenchmarkGet/256B-4         	  382551	      3204 ns/op	  79.90 MB/s	     288 B/op	       1 allocs/op
@@ -232,9 +230,9 @@ to the project. If you contribute a PR please consider adding your name there.
 ## Related Projects
 
 - [bitraft](https://git.mills.io/prologic/bitraft) -- A Distributed Key/Value store (_using Raft_) with a Redis compatible protocol.
-- [bitcaskfs](https://git.mills.io/prologic/bitcaskfs) -- A FUSE file system for mounting a Bitcask database.
-- [bitcask-bench](https://git.mills.io/prologic/bitcask-bench) -- A benchmarking tool comparing Bitcask and several other Go key/value libraries.
+- [bitcaskfs](https://go.mills.io/bitcaskfs) -- A FUSE file system for mounting a Bitcask database.
+- [bitcask-bench](https://go.mills.io/bitcask-bench) -- A benchmarking tool comparing Bitcask and several other Go key/value libraries.
 
 ## License
 
-bitcask is licensed under the term of the [MIT License](https://git.mills.io/prologic/bitcask/blob/master/LICENSE)
+bitcask is licensed under the term of the [MIT License](https://go.mills.io/bitcask/blob/master/LICENSE)

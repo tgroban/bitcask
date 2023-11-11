@@ -1,92 +1,55 @@
+// Package bitcask is a high performance embedded key value store that uses an on-disk LSM and WAL data structures
+// and in-memory radix tree of key/value pairs as per the bitcask paper and seen in the Riak database.
 package bitcask
 
 import (
-	"bytes"
 	"fmt"
 	"hash/crc32"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"sync"
-	"time"
 
-	"github.com/abcum/lcp"
 	"github.com/gofrs/flock"
-	art "github.com/plar/go-adaptive-radix-tree"
-	log "github.com/sirupsen/logrus"
+	iradix "github.com/hashicorp/go-immutable-radix/v2"
 
-	"git.mills.io/prologic/bitcask/internal"
-	"git.mills.io/prologic/bitcask/internal/config"
-	"git.mills.io/prologic/bitcask/internal/data"
-	"git.mills.io/prologic/bitcask/internal/data/codec"
-	"git.mills.io/prologic/bitcask/internal/index"
-	"git.mills.io/prologic/bitcask/internal/metadata"
-	"git.mills.io/prologic/bitcask/scripts/migrations"
+	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/internal/config"
+	"go.mills.io/bitcask/internal/data"
+	"go.mills.io/bitcask/internal/index"
+	"go.mills.io/bitcask/internal/metadata"
 )
 
-const (
-	lockfile     = "lock"
-	ttlIndexFile = "ttl_index"
-)
+const lockfile = "lock"
 
-// Bitcask is a struct that represents a on-disk LSM and WAL data structure
-// and in-memory hash of key/value pairs as per the Bitcask paper and seen
-// in the Riak database.
-type Bitcask struct {
-	mu         sync.RWMutex
-	flock      *flock.Flock
-	config     *config.Config
-	options    []Option
-	path       string
-	curr       data.Datafile
-	datafiles  map[int]data.Datafile
-	trie       art.Tree
-	indexer    index.Indexer
-	ttlIndexer index.Indexer
-	ttlIndex   art.Tree
-	metadata   *metadata.MetaData
-	isMerging  bool
-}
-
-// Stats is a struct returned by Stats() on an open Bitcask instance
-type Stats struct {
-	Datafiles int
-	Keys      int
-	Size      int64
-}
-
-// Stats returns statistics about the database including the number of
-// data files, keys and overall size on disk of the data
-func (b *Bitcask) Stats() (stats Stats, err error) {
-	if stats.Size, err = internal.DirSize(b.path); err != nil {
-		return
-	}
-
-	b.mu.RLock()
-	stats.Datafiles = len(b.datafiles)
-	stats.Keys = b.trie.Size()
-	b.mu.RUnlock()
-
-	return
+type bitcask struct {
+	mu        sync.RWMutex
+	flock     *flock.Flock
+	config    *config.Config
+	options   []Option
+	path      string
+	curr      data.Datafile
+	datafiles map[int]data.Datafile
+	trie      *iradix.Tree[internal.Item]
+	indexer   index.Indexer[internal.Item]
+	metadata  *metadata.MetaData
+	isMerging bool
 }
 
 // Close closes the database and removes the lock. It is important to call
 // Close() as this is the only way to cleanup the lock held by the open
 // database.
-func (b *Bitcask) Close() error {
-	b.mu.RLock()
+func (b *bitcask) Close() error {
 	defer func() {
-		b.mu.RUnlock()
 		b.flock.Unlock()
 	}()
 
 	return b.close()
 }
 
-func (b *Bitcask) close() error {
+func (b *bitcask) close() error {
 	if err := b.saveIndexes(); err != nil {
 		return err
 	}
@@ -106,10 +69,7 @@ func (b *Bitcask) close() error {
 }
 
 // Sync flushes all buffers to disk ensuring all data is written
-func (b *Bitcask) Sync() error {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
+func (b *bitcask) Sync() error {
 	if err := b.saveMetadata(); err != nil {
 		return err
 	}
@@ -118,418 +78,79 @@ func (b *Bitcask) Sync() error {
 }
 
 // Get fetches value for a key
-func (b *Bitcask) Get(key []byte) ([]byte, error) {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-	e, err := b.get(key)
-	if err != nil {
-		return nil, err
-	}
-	return e.Value, nil
+func (b *bitcask) Get(key Key) (Value, error) {
+	return b.Transaction().Get(key)
 }
 
 // Has returns true if the key exists in the database, false otherwise.
-func (b *Bitcask) Has(key []byte) bool {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-	_, found := b.trie.Search(key)
-	if found {
-		return !b.isExpired(key)
-	}
-	return found
+func (b *bitcask) Has(key Key) bool {
+	return b.Transaction().Has(key)
 }
 
 // Put stores the key and value in the database.
-func (b *Bitcask) Put(key, value []byte) error {
-	if len(key) == 0 {
-		return ErrEmptyKey
-	}
-	if b.config.MaxKeySize > 0 && uint32(len(key)) > b.config.MaxKeySize {
-		return ErrKeyTooLarge
-	}
-	if b.config.MaxValueSize > 0 && uint64(len(value)) > b.config.MaxValueSize {
-		return ErrValueTooLarge
-	}
+func (b *bitcask) Put(key Key, value Value) error {
+	tx := b.Transaction()
+	defer tx.Discard()
 
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	offset, n, err := b.put(key, value)
-	if err != nil {
+	if err := tx.Put(key, value); err != nil {
 		return err
 	}
 
-	if b.config.Sync {
-		if err := b.curr.Sync(); err != nil {
-			return err
-		}
-	}
-
-	// in case of successful `put`, IndexUpToDate will be always be false
-	b.metadata.IndexUpToDate = false
-
-	if oldItem, found := b.trie.Search(key); found {
-		b.metadata.ReclaimableSpace += oldItem.(internal.Item).Size
-	}
-
-	item := internal.Item{FileID: b.curr.FileID(), Offset: offset, Size: n}
-	b.trie.Insert(key, item)
-
-	return nil
-}
-
-// PutWithTTL stores the key and value in the database with the given TTL
-func (b *Bitcask) PutWithTTL(key, value []byte, ttl time.Duration) error {
-	if len(key) == 0 {
-		return ErrEmptyKey
-	}
-	if b.config.MaxKeySize > 0 && uint32(len(key)) > b.config.MaxKeySize {
-		return ErrKeyTooLarge
-	}
-	if b.config.MaxValueSize > 0 && uint64(len(value)) > b.config.MaxValueSize {
-		return ErrValueTooLarge
-	}
-
-	expiry := time.Now().Add(ttl)
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	offset, n, err := b.putWithExpiry(key, value, expiry)
-	if err != nil {
-		return err
-	}
-
-	if b.config.Sync {
-		if err := b.curr.Sync(); err != nil {
-			return err
-		}
-	}
-
-	// in case of successful `put`, IndexUpToDate will be always be false
-	b.metadata.IndexUpToDate = false
-
-	if oldItem, found := b.trie.Search(key); found {
-		b.metadata.ReclaimableSpace += oldItem.(internal.Item).Size
-	}
-
-	item := internal.Item{FileID: b.curr.FileID(), Offset: offset, Size: n}
-	b.trie.Insert(key, item)
-	b.ttlIndex.Insert(key, expiry)
-
-	return nil
+	return tx.Commit()
 }
 
 // Delete deletes the named key.
-func (b *Bitcask) Delete(key []byte) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return b.delete(key)
-}
+func (b *bitcask) Delete(key Key) error {
+	tx := b.Transaction()
+	defer tx.Discard()
 
-// delete deletes the named key. If the key doesn't exist or an I/O error
-// occurs the error is returned.
-func (b *Bitcask) delete(key []byte) error {
-	_, _, err := b.put(key, []byte{})
-	if err != nil {
+	if err := tx.Delete(key); err != nil {
 		return err
 	}
-	if item, found := b.trie.Search(key); found {
-		b.metadata.ReclaimableSpace += item.(internal.Item).Size + codec.MetaInfoSize + int64(len(key))
-	}
-	b.trie.Delete(key)
-	b.ttlIndex.Delete(key)
 
-	return nil
-}
-
-// Sift iterates over all keys in the database calling the function `f` for
-// each key. If the KV pair is expired or the function returns true, that key is
-// deleted from the database.
-// If the function returns an error on any key, no further keys are processed, no
-// keys are deleted, and the first error is returned.
-func (b *Bitcask) Sift(f func(key []byte) (bool, error)) (err error) {
-	keysToDelete := art.New()
-
-	b.mu.RLock()
-	b.trie.ForEach(func(node art.Node) bool {
-		if b.isExpired(node.Key()) {
-			keysToDelete.Insert(node.Key(), true)
-			return true
-		}
-		var shouldDelete bool
-		if shouldDelete, err = f(node.Key()); err != nil {
-			return false
-		} else if shouldDelete {
-			keysToDelete.Insert(node.Key(), true)
-		}
-		return true
-	})
-	b.mu.RUnlock()
-	if err != nil {
-		return
-	}
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	keysToDelete.ForEach(func(node art.Node) (cont bool) {
-		b.delete(node.Key())
-		return true
-	})
-	return
-}
-
-// DeleteAll deletes all the keys. If an I/O error occurs the error is returned.
-func (b *Bitcask) DeleteAll() (err error) {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	b.trie.ForEach(func(node art.Node) bool {
-		_, _, err = b.put(node.Key(), []byte{})
-		if err != nil {
-			return false
-		}
-		item, _ := b.trie.Search(node.Key())
-		b.metadata.ReclaimableSpace += item.(internal.Item).Size + codec.MetaInfoSize + int64(len(node.Key()))
-		return true
-	})
-	b.trie = art.New()
-	b.ttlIndex = art.New()
-
-	return
+	return tx.Commit()
 }
 
 // Scan performs a prefix scan of keys matching the given prefix and calling
 // the function `f` with the keys found. If the function returns an error
 // no further keys are processed and the first error is returned.
-func (b *Bitcask) Scan(prefix []byte, f func(key []byte) error) (err error) {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	b.trie.ForEachPrefix(prefix, func(node art.Node) bool {
-		// Skip the root node
-		if len(node.Key()) == 0 {
-			return true
-		}
-
-		if err = f(node.Key()); err != nil {
-			return false
-		}
-		return true
-	})
-	return
-}
-
-// SiftScan iterates over all keys in the database beginning with the given
-// prefix, calling the function `f` for each key. If the KV pair is expired or
-// the function returns true, that key is deleted from the database.
-//  If the function returns an error on any key, no further keys are processed,
-// no keys are deleted, and the first error is returned.
-func (b *Bitcask) SiftScan(prefix []byte, f func(key []byte) (bool, error)) (err error) {
-	keysToDelete := art.New()
-
-	b.mu.RLock()
-	b.trie.ForEachPrefix(prefix, func(node art.Node) bool {
-		// Skip the root node
-		if len(node.Key()) == 0 {
-			return true
-		}
-		if b.isExpired(node.Key()) {
-			keysToDelete.Insert(node.Key(), true)
-			return true
-		}
-		var shouldDelete bool
-		if shouldDelete, err = f(node.Key()); err != nil {
-			return false
-		} else if shouldDelete {
-			keysToDelete.Insert(node.Key(), true)
-		}
-		return true
-	})
-	b.mu.RUnlock()
-
-	if err != nil {
-		return
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	keysToDelete.ForEach(func(node art.Node) (cont bool) {
-		b.delete(node.Key())
-		return true
-	})
-	return
+func (b *bitcask) Scan(prefix Key, f KeyFunc) (err error) {
+	return b.Transaction().Scan(prefix, f)
 }
 
 // Range performs a range scan of keys matching a range of keys between the
 // start key and end key and calling the function `f` with the keys found.
 // If the function returns an error no further keys are processed and the
 // first error returned.
-func (b *Bitcask) Range(start, end []byte, f func(key []byte) error) (err error) {
-	if bytes.Compare(start, end) == 1 {
-		return ErrInvalidRange
-	}
-
-	commonPrefix := lcp.LCP(start, end)
-	if commonPrefix == nil {
-		return ErrInvalidRange
-	}
-
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	b.trie.ForEachPrefix(commonPrefix, func(node art.Node) bool {
-		if bytes.Compare(node.Key(), start) >= 0 && bytes.Compare(node.Key(), end) <= 0 {
-			if err = f(node.Key()); err != nil {
-				return false
-			}
-			return true
-		} else if bytes.Compare(node.Key(), start) >= 0 && bytes.Compare(node.Key(), end) > 0 {
-			return false
-		}
-		return true
-	})
-	return
-}
-
-// SiftRange performs a range scan of keys matching a range of keys between the
-// start key and end key and calling the function `f` with the keys found.
-// If the KV pair is expired or the function returns true, that key is deleted
-// from the database.
-// If the function returns an error on any key, no further keys are processed, no
-// keys are deleted, and the first error is returned.
-func (b *Bitcask) SiftRange(start, end []byte, f func(key []byte) (bool, error)) (err error) {
-	if bytes.Compare(start, end) == 1 {
-		return ErrInvalidRange
-	}
-
-	commonPrefix := lcp.LCP(start, end)
-	if commonPrefix == nil {
-		return ErrInvalidRange
-	}
-
-	keysToDelete := art.New()
-
-	b.mu.RLock()
-	b.trie.ForEachPrefix(commonPrefix, func(node art.Node) bool {
-		if bytes.Compare(node.Key(), start) >= 0 && bytes.Compare(node.Key(), end) <= 0 {
-			if b.isExpired(node.Key()) {
-				keysToDelete.Insert(node.Key(), true)
-				return true
-			}
-			var shouldDelete bool
-			if shouldDelete, err = f(node.Key()); err != nil {
-				return false
-			} else if shouldDelete {
-				keysToDelete.Insert(node.Key(), true)
-			}
-			return true
-		} else if bytes.Compare(node.Key(), start) >= 0 && bytes.Compare(node.Key(), end) > 0 {
-			return false
-		}
-		return true
-	})
-	b.mu.RUnlock()
-
-	if err != nil {
-		return
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	keysToDelete.ForEach(func(node art.Node) (cont bool) {
-		b.delete(node.Key())
-		return true
-	})
-
-	return
+func (b *bitcask) Range(start, end Key, f KeyFunc) (err error) {
+	return b.Transaction().Range(start, end, f)
 }
 
 // Len returns the total number of keys in the database
-func (b *Bitcask) Len() int {
+func (b *bitcask) Len() int {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
-	return b.trie.Size()
+
+	return b.trie.Len()
 }
 
-// Keys returns all keys in the database as a channel of keys
-func (b *Bitcask) Keys() chan []byte {
-	ch := make(chan []byte)
-	go func() {
-		b.mu.RLock()
-		defer b.mu.RUnlock()
-
-		for it := b.trie.Iterator(); it.HasNext(); {
-			node, _ := it.Next()
-			if b.isExpired(node.Key()) {
-				continue
-			}
-			ch <- node.Key()
-		}
-		close(ch)
-	}()
-
-	return ch
-}
-
-// RunGC deletes all expired keys
-func (b *Bitcask) RunGC() error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return b.runGC()
-}
-
-// runGC deletes all keys that are expired
-// caller function should take care of the locking when calling this method
-func (b *Bitcask) runGC() (err error) {
-	keysToDelete := art.New()
-
-	b.ttlIndex.ForEach(func(node art.Node) (cont bool) {
-		if !b.isExpired(node.Key()) {
-			// later, return false here when the ttlIndex is sorted
-			return true
-		}
-		keysToDelete.Insert(node.Key(), true)
-		//keysToDelete = append(keysToDelete, node.Key())
-		return true
-	})
-
-	keysToDelete.ForEach(func(node art.Node) (cont bool) {
-		b.delete(node.Key())
-		return true
-	})
-
-	return nil
-}
-
-// Fold iterates over all keys in the database calling the function `f` for
+// ForEach iterates over all keys in the database calling the function `f` for
 // each key. If the function returns an error, no further keys are processed
 // and the error is returned.
-func (b *Bitcask) Fold(f func(key []byte) error) (err error) {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	b.trie.ForEach(func(node art.Node) bool {
-		if err = f(node.Key()); err != nil {
-			return false
-		}
-		return true
-	})
-
-	return
+func (b *bitcask) ForEach(f KeyFunc) (err error) {
+	return b.Transaction().ForEach(f)
 }
 
-// get retrieves the value of the given key
-func (b *Bitcask) get(key []byte) (internal.Entry, error) {
+func (b *bitcask) read(key []byte) (internal.Entry, error) {
 	var df data.Datafile
 
-	value, found := b.trie.Search(key)
+	b.mu.RLock()
+	item, found := b.trie.Root().Get(key)
+	b.mu.RUnlock()
+
 	if !found {
 		return internal.Entry{}, ErrKeyNotFound
 	}
-	if b.isExpired(key) {
-		return internal.Entry{}, ErrKeyExpired
-	}
-
-	item := value.(internal.Item)
 
 	if item.FileID == b.curr.FileID() {
 		df = b.curr
@@ -550,7 +171,7 @@ func (b *Bitcask) get(key []byte) (internal.Entry, error) {
 	return e, nil
 }
 
-func (b *Bitcask) maybeRotate() error {
+func (b *bitcask) maybeRotate() error {
 	size := b.curr.Size()
 	if size < int64(b.config.MaxDatafileSize) {
 		return nil
@@ -563,11 +184,11 @@ func (b *Bitcask) maybeRotate() error {
 
 	id := b.curr.FileID()
 
-	df, err := data.NewDatafile(
+	df, err := data.NewOnDiskDatafile(
 		b.path, id, true,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
-		b.config.FileFileModeBeforeUmask,
+		b.config.FileMode,
 	)
 	if err != nil {
 		return err
@@ -576,11 +197,11 @@ func (b *Bitcask) maybeRotate() error {
 	b.datafiles[id] = df
 
 	id = b.curr.FileID() + 1
-	curr, err := data.NewDatafile(
+	curr, err := data.NewOnDiskDatafile(
 		b.path, id, false,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
-		b.config.FileFileModeBeforeUmask,
+		b.config.FileMode,
 	)
 	if err != nil {
 		return err
@@ -595,36 +216,26 @@ func (b *Bitcask) maybeRotate() error {
 }
 
 // put inserts a new (key, value). Both key and value are valid inputs.
-func (b *Bitcask) put(key, value []byte) (int64, int64, error) {
+func (b *bitcask) put(key, value []byte) (int64, int64, error) {
 	if err := b.maybeRotate(); err != nil {
 		return -1, 0, fmt.Errorf("error rotating active datafile: %w", err)
 	}
 
-	return b.curr.Write(internal.NewEntry(key, value, nil))
-}
-
-// putWithExpiry inserts a new (key, value, expiry).
-// Both key and value are valid inputs.
-func (b *Bitcask) putWithExpiry(key, value []byte, expiry time.Time) (int64, int64, error) {
-	if err := b.maybeRotate(); err != nil {
-		return -1, 0, fmt.Errorf("error rotating active datafile: %w", err)
-	}
-
-	return b.curr.Write(internal.NewEntry(key, value, &expiry))
+	return b.curr.Write(internal.NewEntry(key, value))
 }
 
 // closeCurrentFile closes current datafile and makes it read only.
-func (b *Bitcask) closeCurrentFile() error {
+func (b *bitcask) closeCurrentFile() error {
 	if err := b.curr.Close(); err != nil {
 		return err
 	}
 
 	id := b.curr.FileID()
-	df, err := data.NewDatafile(
+	df, err := data.NewOnDiskDatafile(
 		b.path, id, true,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
-		b.config.FileFileModeBeforeUmask,
+		b.config.FileMode,
 	)
 	if err != nil {
 		return err
@@ -634,14 +245,14 @@ func (b *Bitcask) closeCurrentFile() error {
 	return nil
 }
 
-// openNewWritableFile opens new datafile for writing data
-func (b *Bitcask) openNewWritableFile() error {
+// openNewWriteableFile opens new datafile for writing data
+func (b *bitcask) openNewWriteableFile() error {
 	id := b.curr.FileID() + 1
-	curr, err := data.NewDatafile(
+	curr, err := data.NewOnDiskDatafile(
 		b.path, id, false,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
-		b.config.FileFileModeBeforeUmask,
+		b.config.FileMode,
 	)
 	if err != nil {
 		return err
@@ -650,36 +261,28 @@ func (b *Bitcask) openNewWritableFile() error {
 	return nil
 }
 
-// Reopen closes and reopsns the database
-func (b *Bitcask) Reopen() error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return b.reopen()
-}
-
 // reopen reloads a bitcask object with index and datafiles
 // caller of this method should take care of locking
-func (b *Bitcask) reopen() error {
+func (b *bitcask) reopen() error {
 	datafiles, lastID, err := loadDatafiles(
 		b.path,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
-		b.config.FileFileModeBeforeUmask,
+		b.config.FileMode,
 	)
 	if err != nil {
 		return err
 	}
-	t, ttlIndex, err := loadIndexes(b, datafiles, lastID)
+	t, err := loadIndexes(b, datafiles, lastID)
 	if err != nil {
 		return err
 	}
 
-	curr, err := data.NewDatafile(
+	curr, err := data.NewOnDiskDatafile(
 		b.path, lastID, false,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
-		b.config.FileFileModeBeforeUmask,
+		b.config.FileMode,
 	)
 	if err != nil {
 		return err
@@ -687,7 +290,6 @@ func (b *Bitcask) reopen() error {
 
 	b.trie = t
 	b.curr = curr
-	b.ttlIndex = ttlIndex
 	b.datafiles = datafiles
 
 	return nil
@@ -696,7 +298,7 @@ func (b *Bitcask) reopen() error {
 // Merge merges all datafiles in the database. Old keys are squashed
 // and deleted keys removes. Duplicate key/value pairs are also removed.
 // Call this function periodically to reclaim disk space.
-func (b *Bitcask) Merge() error {
+func (b *bitcask) Merge() error {
 	b.mu.Lock()
 	if b.isMerging {
 		b.mu.Unlock()
@@ -707,7 +309,7 @@ func (b *Bitcask) Merge() error {
 	defer func() {
 		b.isMerging = false
 	}()
-	b.mu.RLock()
+	b.mu.Lock()
 	err := b.closeCurrentFile()
 	if err != nil {
 		b.mu.RUnlock()
@@ -717,16 +319,16 @@ func (b *Bitcask) Merge() error {
 	for k := range b.datafiles {
 		filesToMerge = append(filesToMerge, k)
 	}
-	err = b.openNewWritableFile()
+	err = b.openNewWriteableFile()
 	if err != nil {
 		b.mu.RUnlock()
 		return err
 	}
-	b.mu.RUnlock()
+	b.mu.Unlock()
 	sort.Ints(filesToMerge)
 
 	// Temporary merged database path
-	temp, err := ioutil.TempDir(b.path, "merge")
+	temp, err := os.MkdirTemp(b.path, "merge")
 	if err != nil {
 		return err
 	}
@@ -741,35 +343,27 @@ func (b *Bitcask) Merge() error {
 	// Rewrite all key/value pairs into merged database
 	// Doing this automatically strips deleted keys and
 	// old key/value pairs
-	err = b.Fold(func(key []byte) error {
-		item, _ := b.trie.Search(key)
+	b.trie.Root().Walk(func(key []byte, item internal.Item) bool {
 		// if key was updated after start of merge operation, nothing to do
-		if item.(internal.Item).FileID > filesToMerge[len(filesToMerge)-1] {
-			return nil
+		if item.FileID > filesToMerge[len(filesToMerge)-1] {
+			return false
 		}
-		e, err := b.get(key)
+		e, err := b.read(key)
 		if err != nil {
-			return err
+			return true
 		}
 
-		if e.Expiry != nil {
-			if err := mdb.PutWithTTL(key, e.Value, time.Until(*e.Expiry)); err != nil {
-				return err
-			}
-		} else {
-			if err := mdb.Put(key, e.Value); err != nil {
-				return err
-			}
+		if err := mdb.Put(key, e.Value); err != nil {
+			return true
 		}
 
-		return nil
+		return false
 	})
-	if err != nil {
+
+	if err := mdb.Close(); err != nil {
 		return err
 	}
-	if err = mdb.Close(); err != nil {
-		return err
-	}
+
 	// no reads and writes till we reopen
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -778,7 +372,7 @@ func (b *Bitcask) Merge() error {
 	}
 
 	// Remove data files
-	files, err := ioutil.ReadDir(b.path)
+	files, err := os.ReadDir(b.path)
 	if err != nil {
 		return err
 	}
@@ -801,7 +395,7 @@ func (b *Bitcask) Merge() error {
 	}
 
 	// Rename all merged data files
-	files, err = ioutil.ReadDir(mdb.path)
+	files, err = os.ReadDir(mdb.Path())
 	if err != nil {
 		return err
 	}
@@ -811,7 +405,7 @@ func (b *Bitcask) Merge() error {
 			continue
 		}
 		err := os.Rename(
-			path.Join([]string{mdb.path, file.Name()}...),
+			path.Join([]string{mdb.Path(), file.Name()}...),
 			path.Join([]string{b.path, file.Name()}...),
 		)
 		if err != nil {
@@ -827,7 +421,7 @@ func (b *Bitcask) Merge() error {
 // Open opens the database at the given path with optional options.
 // Options can be provided with the `WithXXX` functions that provide
 // configuration options as functions.
-func Open(path string, options ...Option) (*Bitcask, error) {
+func Open(path string, options ...Option) (DB, error) {
 	var (
 		cfg  *config.Config
 		err  error
@@ -844,17 +438,13 @@ func Open(path string, options ...Option) (*Bitcask, error) {
 		cfg = newDefaultConfig()
 	}
 
-	if err := checkAndUpgrade(cfg, configPath); err != nil {
-		return nil, err
-	}
-
 	for _, opt := range options {
 		if err := opt(cfg); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := os.MkdirAll(path, cfg.DirFileModeBeforeUmask); err != nil {
+	if err := os.MkdirAll(path, cfg.DirMode); err != nil {
 		return nil, err
 	}
 
@@ -863,17 +453,17 @@ func Open(path string, options ...Option) (*Bitcask, error) {
 		return nil, &ErrBadMetadata{err}
 	}
 
-	bitcask := &Bitcask{
-		flock:      flock.New(filepath.Join(path, lockfile)),
-		config:     cfg,
-		options:    options,
-		path:       path,
-		indexer:    index.NewIndexer(),
-		ttlIndexer: index.NewTTLIndexer(),
-		metadata:   meta,
+	db := &bitcask{
+		flock:    flock.New(filepath.Join(path, lockfile)),
+		config:   cfg,
+		options:  options,
+		path:     path,
+		trie:     iradix.New[internal.Item](),
+		indexer:  index.NewIndexer(),
+		metadata: meta,
 	}
 
-	ok, err := bitcask.flock.TryLock()
+	ok, err := db.flock.TryLock()
 	if err != nil {
 		return nil, err
 	}
@@ -891,44 +481,29 @@ func Open(path string, options ...Option) (*Bitcask, error) {
 			return nil, fmt.Errorf("recovering database: %s", err)
 		}
 	}
-	if err := bitcask.Reopen(); err != nil {
+	if err := db.reopen(); err != nil {
 		return nil, err
 	}
 
-	return bitcask, nil
+	return db, nil
 }
 
-// checkAndUpgrade checks if DB upgrade is required
-// if yes, then applies version upgrade and saves updated config
-func checkAndUpgrade(cfg *config.Config, configPath string) error {
-	if cfg.DBVersion == CurrentDBVersion {
-		return nil
-	}
-	if cfg.DBVersion > CurrentDBVersion {
-		return ErrInvalidVersion
-	}
-	// for v0 to v1 upgrade, we need to append 8 null bytes after each encoded entry in datafiles
-	if cfg.DBVersion == uint32(0) && CurrentDBVersion == uint32(1) {
-		log.Warn("upgrading db version, might take some time....")
-		cfg.DBVersion = CurrentDBVersion
-		return migrations.ApplyV0ToV1(filepath.Dir(configPath), cfg.MaxDatafileSize)
-	}
-	return nil
-}
+// Path returns the database path
+func (b *bitcask) Path() string { return b.path }
 
 // Backup copies db directory to given path
 // it creates path if it does not exist
-func (b *Bitcask) Backup(path string) error {
+func (b *bitcask) Backup(path string) error {
 	if !internal.Exists(path) {
-		if err := os.MkdirAll(path, b.config.DirFileModeBeforeUmask); err != nil {
+		if err := os.MkdirAll(path, b.config.DirMode); err != nil {
 			return err
 		}
 	}
 	return internal.Copy(b.path, path, []string{lockfile})
 }
 
-// saveIndex saves index and ttl_index currently in RAM to disk
-func (b *Bitcask) saveIndexes() error {
+// saveIndex saves index currently in memory to disk
+func (b *bitcask) saveIndexes() error {
 	tempIdx := "temp_index"
 	if err := b.indexer.Save(b.trie, filepath.Join(b.path, tempIdx)); err != nil {
 		return err
@@ -936,30 +511,12 @@ func (b *Bitcask) saveIndexes() error {
 	if err := os.Rename(filepath.Join(b.path, tempIdx), filepath.Join(b.path, "index")); err != nil {
 		return err
 	}
-	if err := b.ttlIndexer.Save(b.ttlIndex, filepath.Join(b.path, tempIdx)); err != nil {
-		return err
-	}
-	return os.Rename(filepath.Join(b.path, tempIdx), filepath.Join(b.path, ttlIndexFile))
+	return nil
 }
 
 // saveMetadata saves metadata into disk
-func (b *Bitcask) saveMetadata() error {
-	return b.metadata.Save(filepath.Join(b.path, "meta.json"), b.config.DirFileModeBeforeUmask)
-}
-
-// Reclaimable returns space that can be reclaimed
-func (b *Bitcask) Reclaimable() int64 {
-	return b.metadata.ReclaimableSpace
-}
-
-// isExpired returns true if a key has expired
-// it returns false if key does not exist in ttl index
-func (b *Bitcask) isExpired(key []byte) bool {
-	expiry, found := b.ttlIndex.Search(key)
-	if !found {
-		return false
-	}
-	return expiry.(time.Time).Before(time.Now().UTC())
+func (b *bitcask) saveMetadata() error {
+	return b.metadata.Save(filepath.Join(b.path, "meta.json"), b.config.FileMode)
 }
 
 func loadDatafiles(path string, maxKeySize uint32, maxValueSize uint64, fileModeBeforeUmask os.FileMode) (datafiles map[int]data.Datafile, lastID int, err error) {
@@ -975,7 +532,7 @@ func loadDatafiles(path string, maxKeySize uint32, maxValueSize uint64, fileMode
 
 	datafiles = make(map[int]data.Datafile, len(ids))
 	for _, id := range ids {
-		datafiles[id], err = data.NewDatafile(
+		datafiles[id], err = data.NewOnDiskDatafile(
 			path, id, true,
 			maxKeySize,
 			maxValueSize,
@@ -1007,35 +564,32 @@ func getSortedDatafiles(datafiles map[int]data.Datafile) []data.Datafile {
 
 // loadIndexes loads index from disk to memory. If index is not available or partially available (last bitcask process crashed)
 // then it iterates over last datafile and construct index
-// we construct ttl_index here also along with normal index
-func loadIndexes(b *Bitcask, datafiles map[int]data.Datafile, lastID int) (art.Tree, art.Tree, error) {
-	t, found, err := b.indexer.Load(filepath.Join(b.path, "index"), b.config.MaxKeySize)
+func loadIndexes(b *bitcask, dataFiles map[int]data.Datafile, lastID int) (*iradix.Tree[internal.Item], error) {
+	t, err := b.indexer.Load(filepath.Join(b.path, "index"), b.config.MaxKeySize)
 	if err != nil {
-		return nil, nil, err
+		return loadIndexFromDatafiles(dataFiles)
 	}
-	ttlIndex, _, err := b.ttlIndexer.Load(filepath.Join(b.path, ttlIndexFile), b.config.MaxKeySize)
-	if err != nil {
-		return nil, nil, err
+	if !b.metadata.IndexUpToDate {
+		return loadIndexFromDatafiles(dataFiles)
 	}
-	if found && b.metadata.IndexUpToDate {
-		return t, ttlIndex, nil
-	}
-	if found {
-		if err := loadIndexFromDatafile(t, ttlIndex, datafiles[lastID]); err != nil {
-			return nil, ttlIndex, err
-		}
-		return t, ttlIndex, nil
-	}
-	sortedDatafiles := getSortedDatafiles(datafiles)
-	for _, df := range sortedDatafiles {
-		if err := loadIndexFromDatafile(t, ttlIndex, df); err != nil {
-			return nil, ttlIndex, err
-		}
-	}
-	return t, ttlIndex, nil
+	return t, err
 }
 
-func loadIndexFromDatafile(t art.Tree, ttlIndex art.Tree, df data.Datafile) error {
+func loadIndexFromDatafiles(dataFiles map[int]data.Datafile) (t *iradix.Tree[internal.Item], err error) {
+	t = iradix.New[internal.Item]()
+
+	sortedDatafiles := getSortedDatafiles(dataFiles)
+	for _, df := range sortedDatafiles {
+		t, err = loadIndexFromDatafile(t, df)
+		if err != nil {
+			return t, err
+		}
+	}
+
+	return
+}
+
+func loadIndexFromDatafile(t *iradix.Tree[internal.Item], df data.Datafile) (*iradix.Tree[internal.Item], error) {
 	var offset int64
 	for {
 		e, n, err := df.Read()
@@ -1043,22 +597,20 @@ func loadIndexFromDatafile(t art.Tree, ttlIndex art.Tree, df data.Datafile) erro
 			if err == io.EOF {
 				break
 			}
-			return err
+			return t, err
 		}
+
 		// Tombstone value  (deleted key)
 		if len(e.Value) == 0 {
-			t.Delete(e.Key)
+			t, _, _ = t.Delete(e.Key)
 			offset += n
 			continue
 		}
 		item := internal.Item{FileID: df.FileID(), Offset: offset, Size: n}
-		t.Insert(e.Key, item)
-		if e.Expiry != nil {
-			ttlIndex.Insert(e.Key, *e.Expiry)
-		}
+		t, _, _ = t.Insert(e.Key, item)
 		offset += n
 	}
-	return nil
+	return t, nil
 }
 
 func loadMetadata(path string) (*metadata.MetaData, error) {

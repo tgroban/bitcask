@@ -6,9 +6,9 @@ import (
 	"encoding/binary"
 	"testing"
 
+	iradix "github.com/hashicorp/go-immutable-radix/v2"
 	"github.com/pkg/errors"
-	art "github.com/plar/go-adaptive-radix-tree"
-	"git.mills.io/prologic/bitcask/internal"
+	"go.mills.io/bitcask/internal"
 )
 
 const (
@@ -24,7 +24,7 @@ func TestWriteIndex(t *testing.T) {
 		t.Fatalf("writing index failed: %v", err)
 	}
 	if b.Len() != expectedSerializedSize {
-		t.Fatalf("incorrect size of serialied index: expected %d, got: %d", expectedSerializedSize, b.Len())
+		t.Fatalf("incorrect size of serialised index: expected %d, got: %d", expectedSerializedSize, b.Len())
 	}
 	sampleTreeBytes, _ := base64.StdEncoding.DecodeString(base64SampleTree)
 	if !bytes.Equal(b.Bytes(), sampleTreeBytes) {
@@ -36,22 +36,23 @@ func TestReadIndex(t *testing.T) {
 	sampleTreeBytes, _ := base64.StdEncoding.DecodeString(base64SampleTree)
 	b := bytes.NewBuffer(sampleTreeBytes)
 
-	at := art.New()
-	err := readIndex(b, at, 1024)
+	var err error
+	at := iradix.New[internal.Item]()
+	at, err = readIndex(b, at, 1024)
 	if err != nil {
 		t.Fatalf("error while deserializing correct sample tree: %v", err)
 	}
 
 	atsample, _ := getSampleTree()
-	if atsample.Size() != at.Size() {
-		t.Fatalf("trees aren't the same size, expected %v, got %v", atsample.Size(), at.Size())
+	if atsample.Len() != at.Len() {
+		t.Fatalf("trees aren't the same size, expected %v, got %v", atsample.Len(), at.Len())
 	}
-	atsample.ForEach(func(node art.Node) bool {
-		_, found := at.Search(node.Key())
+	atsample.Root().Walk(func(key []byte, item internal.Item) bool {
+		_, found := at.Root().Get(key)
 		if !found {
-			t.Fatalf("expected node wasn't found: %s", node.Key())
+			t.Fatalf("expected node wasn't found: %s", key)
 		}
-		return true
+		return false
 	})
 }
 
@@ -75,7 +76,7 @@ func TestReadCorruptedData(t *testing.T) {
 			t.Run(table[i].name, func(t *testing.T) {
 				bf := bytes.NewBuffer(table[i].data)
 
-				if err := readIndex(bf, art.New(), 1024); !IsIndexCorruption(err) || errors.Cause(err) != table[i].err {
+				if _, err := readIndex(bf, iradix.New[internal.Item](), 1024); !IsIndexCorruption(err) || errors.Cause(err) != table[i].err {
 					t.Fatalf("expected %v, got %v", table[i].err, err)
 				}
 			})
@@ -104,7 +105,7 @@ func TestReadCorruptedData(t *testing.T) {
 			t.Run(table[i].name, func(t *testing.T) {
 				bf := bytes.NewBuffer(table[i].data)
 
-				if err := readIndex(bf, art.New(), table[i].maxKeySize); !IsIndexCorruption(err) || errors.Cause(err) != table[i].err {
+				if _, err := readIndex(bf, iradix.New[internal.Item](), table[i].maxKeySize); !IsIndexCorruption(err) || errors.Cause(err) != table[i].err {
 					t.Fatalf("expected %v, got %v", table[i].err, err)
 				}
 			})
@@ -113,12 +114,12 @@ func TestReadCorruptedData(t *testing.T) {
 
 }
 
-func getSampleTree() (art.Tree, int) {
-	at := art.New()
+func getSampleTree() (*iradix.Tree[internal.Item], int) {
+	at := iradix.New[internal.Item]()
 	keys := [][]byte{[]byte("abcd"), []byte("abce"), []byte("abcf"), []byte("abgd")}
 	expectedSerializedSize := 0
 	for i := range keys {
-		at.Insert(keys[i], internal.Item{FileID: i, Offset: int64(i), Size: int64(i)})
+		at, _, _ = at.Insert(keys[i], internal.Item{FileID: i, Offset: int64(i), Size: int64(i)})
 		expectedSerializedSize += int32Size + len(keys[i]) + fileIDSize + offsetSize + sizeSize
 	}
 

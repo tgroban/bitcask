@@ -1,15 +1,17 @@
+// Package data implements on disk and in memory storage for data files
 package data
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 
-	"git.mills.io/prologic/bitcask/internal"
-	"git.mills.io/prologic/bitcask/internal/data/codec"
+	"github.com/mattetti/filebuffer"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/mmap"
+
+	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/internal/data/codec"
 )
 
 const (
@@ -31,24 +33,11 @@ type Datafile interface {
 	Read() (internal.Entry, int64, error)
 	ReadAt(index, size int64) (internal.Entry, error)
 	Write(internal.Entry) (int64, int64, error)
+	Readonly() Datafile
 }
 
-type datafile struct {
-	sync.RWMutex
-
-	id           int
-	r            *os.File
-	ra           *mmap.ReaderAt
-	w            *os.File
-	offset       int64
-	dec          *codec.Decoder
-	enc          *codec.Encoder
-	maxKeySize   uint32
-	maxValueSize uint64
-}
-
-// NewDatafile opens an existing datafile
-func NewDatafile(path string, id int, readonly bool, maxKeySize uint32, maxValueSize uint64, fileMode os.FileMode) (Datafile, error) {
+// NewOnDiskDatafile opens an existing on disk datafile
+func NewOnDiskDatafile(path string, id int, readonly bool, maxKeySize uint32, maxValueSize uint64, fileMode os.FileMode) (Datafile, error) {
 	var (
 		r   *os.File
 		ra  *mmap.ReaderAt
@@ -86,7 +75,7 @@ func NewDatafile(path string, id int, readonly bool, maxKeySize uint32, maxValue
 	dec := codec.NewDecoder(r, maxKeySize, maxValueSize)
 	enc := codec.NewEncoder(w)
 
-	return &datafile{
+	return &onDiskDatafile{
 		id:           id,
 		r:            r,
 		ra:           ra,
@@ -99,102 +88,19 @@ func NewDatafile(path string, id int, readonly bool, maxKeySize uint32, maxValue
 	}, nil
 }
 
-func (df *datafile) FileID() int {
-	return df.id
-}
+// NewInMemoryDatafile creates a new in-memory datafile
+func NewInMemoryDatafile(id int, maxKeySize uint32, maxValueSize uint64) Datafile {
+	buf := filebuffer.New(nil)
 
-func (df *datafile) Name() string {
-	return df.r.Name()
-}
+	dec := codec.NewDecoder(buf, maxKeySize, maxValueSize)
+	enc := codec.NewEncoder(buf)
 
-func (df *datafile) Close() error {
-	defer func() {
-		if df.ra != nil {
-			df.ra.Close()
-		}
-		df.r.Close()
-	}()
-
-	// Readonly datafile -- Nothing further to close on the write side
-	if df.w == nil {
-		return nil
+	return &inMemoryDatafile{
+		id:           id,
+		buf:          buf,
+		dec:          dec,
+		enc:          enc,
+		maxKeySize:   maxKeySize,
+		maxValueSize: maxValueSize,
 	}
-
-	err := df.Sync()
-	if err != nil {
-		return err
-	}
-	return df.w.Close()
-}
-
-func (df *datafile) Sync() error {
-	if df.w == nil {
-		return nil
-	}
-	return df.w.Sync()
-}
-
-func (df *datafile) Size() int64 {
-	df.RLock()
-	defer df.RUnlock()
-	return df.offset
-}
-
-// Read reads the next entry from the datafile
-func (df *datafile) Read() (e internal.Entry, n int64, err error) {
-	df.Lock()
-	defer df.Unlock()
-
-	n, err = df.dec.Decode(&e)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-// ReadAt the entry located at index offset with expected serialized size
-func (df *datafile) ReadAt(index, size int64) (e internal.Entry, err error) {
-	var n int
-
-	b := make([]byte, size)
-
-	df.RLock()
-	defer df.RUnlock()
-
-	if df.ra != nil {
-		n, err = df.ra.ReadAt(b, index)
-	} else {
-		n, err = df.r.ReadAt(b, index)
-	}
-	if err != nil {
-		return
-	}
-	if int64(n) != size {
-		err = errReadError
-		return
-	}
-
-	codec.DecodeEntry(b, &e, df.maxKeySize, df.maxValueSize)
-
-	return
-}
-
-func (df *datafile) Write(e internal.Entry) (int64, int64, error) {
-	if df.w == nil {
-		return -1, 0, errReadonly
-	}
-
-	df.Lock()
-	defer df.Unlock()
-
-	e.Offset = df.offset
-
-	n, err := df.enc.Encode(e)
-	if err != nil {
-		return -1, 0, err
-	}
-	df.offset += n
-
-	return e.Offset, n, nil
 }

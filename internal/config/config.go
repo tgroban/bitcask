@@ -1,3 +1,4 @@
+// Package config defines configuration details and functions to load and save configuration to disk
 package config
 
 import (
@@ -8,21 +9,20 @@ import (
 
 // Config contains the bitcask configuration parameters
 type Config struct {
-	MaxDatafileSize         int    `json:"max_datafile_size"`
-	MaxKeySize              uint32 `json:"max_key_size"`
-	MaxValueSize            uint64 `json:"max_value_size"`
-	Sync                    bool   `json:"sync"`
-	AutoRecovery            bool   `json:"autorecovery"`
-	DBVersion               uint32 `json:"db_version"`
-	DirFileModeBeforeUmask  os.FileMode
-	FileFileModeBeforeUmask os.FileMode
+	MaxDatafileSize int         `json:"max_datafile_size"`
+	MaxKeySize      uint32      `json:"max_key_size"`
+	MaxValueSize    uint64      `json:"max_value_size"`
+	Sync            bool        `json:"sync"`
+	AutoRecovery    bool        `json:"autorecovery"`
+	DirMode         os.FileMode `json:"dir_mode"`
+	FileMode        os.FileMode `json:"file_mode"`
 }
 
 // Load loads a configuration from the given path
 func Load(path string) (*Config, error) {
 	var cfg Config
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *Config) Save(path string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, data, c.FileFileModeBeforeUmask)
+	err = ioutil.WriteFile(path, data, c.FileMode)
 	if err != nil {
 		return err
 	}

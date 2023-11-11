@@ -6,15 +6,17 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	"git.mills.io/prologic/bitcask/internal"
+
+	"go.mills.io/bitcask/internal"
 )
 
 const (
 	keySize      = 4
 	valueSize    = 8
 	checksumSize = 4
-	ttlSize      = 8
-	MetaInfoSize = keySize + valueSize + checksumSize + ttlSize
+
+	// MetaInfoSize is the total size of the whole encoded entry (key + value + checksum)
+	MetaInfoSize = keySize + valueSize + checksumSize
 )
 
 // NewEncoder creates a streaming Entry encoder.
@@ -51,19 +53,9 @@ func (e *Encoder) Encode(msg internal.Entry) (int64, error) {
 		return 0, errors.Wrap(err, "failed writing checksum data")
 	}
 
-	bufTTL := bufKeyValue[:ttlSize]
-	if msg.Expiry == nil {
-		binary.BigEndian.PutUint64(bufTTL, uint64(0))
-	} else {
-		binary.BigEndian.PutUint64(bufTTL, uint64(msg.Expiry.Unix()))
-	}
-	if _, err := e.w.Write(bufTTL); err != nil {
-		return 0, errors.Wrap(err, "failed writing ttl data")
-	}
-
 	if err := e.w.Flush(); err != nil {
 		return 0, errors.Wrap(err, "failed flushing data")
 	}
 
-	return int64(keySize + valueSize + len(msg.Key) + len(msg.Value) + checksumSize + ttlSize), nil
+	return int64(keySize + valueSize + len(msg.Key) + len(msg.Value) + checksumSize), nil
 }

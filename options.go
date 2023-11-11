@@ -3,15 +3,15 @@ package bitcask
 import (
 	"os"
 
-	"git.mills.io/prologic/bitcask/internal/config"
+	"go.mills.io/bitcask/internal/config"
 )
 
 const (
-	// DefaultDirFileModeBeforeUmask is the default os.FileMode used when creating directories
-	DefaultDirFileModeBeforeUmask = os.FileMode(0700)
+	// DefaultDirMode is the default os.FileMode used when creating directories
+	DefaultDirMode = os.FileMode(0700)
 
-	// DefaultFileFileModeBeforeUmask is the default os.FileMode used when creating files
-	DefaultFileFileModeBeforeUmask = os.FileMode(0600)
+	// DefaultFileMode is the default os.FileMode used when creating files
+	DefaultFileMode = os.FileMode(0600)
 
 	// DefaultMaxDatafileSize is the default maximum datafile size in bytes
 	DefaultMaxDatafileSize = 1 << 20 // 1MB
@@ -26,8 +26,7 @@ const (
 	DefaultSync = false
 
 	// DefaultAutoRecovery is the default auto-recovery action.
-
-	CurrentDBVersion = uint32(1)
+	DefaultAutoRecovery = true
 )
 
 // Option is a function that takes a config struct and modifies it
@@ -40,8 +39,8 @@ func withConfig(src *config.Config) Option {
 		cfg.MaxValueSize = src.MaxValueSize
 		cfg.Sync = src.Sync
 		cfg.AutoRecovery = src.AutoRecovery
-		cfg.DirFileModeBeforeUmask = src.DirFileModeBeforeUmask
-		cfg.FileFileModeBeforeUmask = src.FileFileModeBeforeUmask
+		cfg.DirMode = src.DirMode
+		cfg.FileMode = src.FileMode
 		return nil
 	}
 }
@@ -56,18 +55,18 @@ func WithAutoRecovery(enabled bool) Option {
 	}
 }
 
-// WithDirFileModeBeforeUmask sets the FileMode used for each new file created.
-func WithDirFileModeBeforeUmask(mode os.FileMode) Option {
+// WithDirMode sets the FileMode used for each new file created.
+func WithDirMode(mode os.FileMode) Option {
 	return func(cfg *config.Config) error {
-		cfg.DirFileModeBeforeUmask = mode
+		cfg.DirMode = mode
 		return nil
 	}
 }
 
-// WithFileFileModeBeforeUmask sets the FileMode used for each new file created.
-func WithFileFileModeBeforeUmask(mode os.FileMode) Option {
+// WithFileMode sets the FileMode used for each new file created.
+func WithFileMode(mode os.FileMode) Option {
 	return func(cfg *config.Config) error {
-		cfg.FileFileModeBeforeUmask = mode
+		cfg.FileMode = mode
 		return nil
 	}
 }
@@ -107,12 +106,11 @@ func WithSync(sync bool) Option {
 
 func newDefaultConfig() *config.Config {
 	return &config.Config{
-		MaxDatafileSize:         DefaultMaxDatafileSize,
-		MaxKeySize:              DefaultMaxKeySize,
-		MaxValueSize:            DefaultMaxValueSize,
-		Sync:                    DefaultSync,
-		DirFileModeBeforeUmask:  DefaultDirFileModeBeforeUmask,
-		FileFileModeBeforeUmask: DefaultFileFileModeBeforeUmask,
-		DBVersion:               CurrentDBVersion,
+		MaxDatafileSize: DefaultMaxDatafileSize,
+		MaxKeySize:      DefaultMaxKeySize,
+		MaxValueSize:    DefaultMaxValueSize,
+		Sync:            DefaultSync,
+		DirMode:         DefaultDirMode,
+		FileMode:        DefaultFileMode,
 	}
 }

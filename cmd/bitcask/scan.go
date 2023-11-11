@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
 var scanCmd = &cobra.Command{
@@ -40,7 +40,7 @@ func scan(path, prefix string) int {
 	}
 	defer db.Close()
 
-	err = db.Scan([]byte(prefix), func(key []byte) error {
+	err = db.Scan([]byte(prefix), func(key bitcask.Key) error {
 		value, err := db.Get(key)
 		if err != nil {
 			log.WithError(err).Error("error reading key")

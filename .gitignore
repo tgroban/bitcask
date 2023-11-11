@@ -2,6 +2,7 @@
 *.db
 *.bak
 **.envrc
+**/.DS_Store
 
 /tmp
 /dist

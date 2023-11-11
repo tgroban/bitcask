@@ -4,9 +4,9 @@ import (
 	"encoding/binary"
 	"io"
 
+	iradix "github.com/hashicorp/go-immutable-radix/v2"
 	"github.com/pkg/errors"
-	art "github.com/plar/go-adaptive-radix-tree"
-	"git.mills.io/prologic/bitcask/internal"
+	"go.mills.io/bitcask/internal"
 )
 
 var (
@@ -87,37 +87,36 @@ func writeItem(item internal.Item, w io.Writer) error {
 }
 
 // ReadIndex reads a persisted from a io.Reader into a Tree
-func readIndex(r io.Reader, t art.Tree, maxKeySize uint32) error {
+func readIndex(r io.Reader, t *iradix.Tree[internal.Item], maxKeySize uint32) (*iradix.Tree[internal.Item], error) {
 	for {
 		key, err := readKeyBytes(r, maxKeySize)
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
-			return err
+			return t, err
 		}
 
 		item, err := readItem(r)
 		if err != nil {
-			return err
+			return t, err
 		}
 
-		t.Insert(key, item)
+		t, _, _ = t.Insert(key, item)
 	}
 
-	return nil
+	return t, nil
 }
 
-func writeIndex(t art.Tree, w io.Writer) (err error) {
-	t.ForEach(func(node art.Node) bool {
-		err = writeBytes(node.Key(), w)
+func writeIndex(t *iradix.Tree[internal.Item], w io.Writer) (err error) {
+	t.Root().Walk(func(key []byte, item internal.Item) bool {
+		err = writeBytes(key, w)
 		if err != nil {
-			return false
+			return true
 		}
 
-		item := node.Value().(internal.Item)
 		err := writeItem(item, w)
-		return err == nil
+		return err != nil
 	})
 	return
 }

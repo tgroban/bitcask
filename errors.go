@@ -13,10 +13,6 @@ var (
 	// maximum allowed key size (configured with WithMaxKeySize).
 	ErrKeyTooLarge = errors.New("error: key too large")
 
-	// ErrKeyExpired is the error returned when a key is queried which has
-	// already expired (due to ttl)
-	ErrKeyExpired = errors.New("error: key expired")
-
 	// ErrEmptyKey is the error returned for a value with an empty key.
 	ErrEmptyKey = errors.New("error: empty key")
 
@@ -48,6 +44,7 @@ type ErrBadConfig struct {
 	Err error
 }
 
+// Is ...
 func (e *ErrBadConfig) Is(target error) bool {
 	if _, ok := target.(*ErrBadConfig); ok {
 		return true
@@ -64,6 +61,7 @@ type ErrBadMetadata struct {
 	Err error
 }
 
+// Is ...
 func (e *ErrBadMetadata) Is(target error) bool {
 	if _, ok := target.(*ErrBadMetadata); ok {
 		return true

@@ -85,7 +85,7 @@ func Copy(src, dst string, exclude []string) error {
 		if info.IsDir() {
 			return os.Mkdir(filepath.Join(dst, relPath), info.Mode())
 		}
-		var data, err1 = ioutil.ReadFile(filepath.Join(src, relPath))
+		var data, err1 = os.ReadFile(filepath.Join(src, relPath))
 		if err1 != nil {
 			return err1
 		}
@@ -93,18 +93,18 @@ func Copy(src, dst string, exclude []string) error {
 	})
 }
 
-// SaveJsonToFile converts v into json and store in file identified by path
-func SaveJsonToFile(v interface{}, path string, mode os.FileMode) error {
+// SaveJSONToFile converts v into json and store in file identified by path
+func SaveJSONToFile(v interface{}, path string, mode os.FileMode) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, b, mode)
+	return os.WriteFile(path, b, mode)
 }
 
-// LoadFromJsonFile reads file located at `path` and put its content in json format in v
-func LoadFromJsonFile(path string, v interface{}) error {
-	b, err := ioutil.ReadFile(path)
+// LoadFromJSONFile reads file located at `path` and put its content in json format in v
+func LoadFromJSONFile(path string, v interface{}) error {
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}

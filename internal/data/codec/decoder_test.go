@@ -5,26 +5,23 @@ import (
 	"encoding/binary"
 	"io"
 	"testing"
-	"time"
 
-	"git.mills.io/prologic/bitcask/internal"
 	"github.com/stretchr/testify/assert"
+	"go.mills.io/bitcask/internal"
 )
 
 func TestDecodeOnNilEntry(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
 	decoder := NewDecoder(&bytes.Buffer{}, 1, 1)
 
 	_, err := decoder.Decode(nil)
-	if assert.Error(err) {
-		assert.Equal(errCantDecodeOnNilEntry, err)
+	if assert.Error(t, err) {
+		assert.Equal(t, errCantDecodeOnNilEntry, err)
 	}
 }
 
 func TestShortPrefix(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
 	maxKeySize, maxValueSize := uint32(10), uint64(20)
 	prefix := make([]byte, keySize+valueSize)
 	binary.BigEndian.PutUint32(prefix, 1)
@@ -34,13 +31,12 @@ func TestShortPrefix(t *testing.T) {
 	buf := bytes.NewBuffer(prefix[:keySize+valueSize-truncBytesCount])
 	decoder := NewDecoder(buf, maxKeySize, maxValueSize)
 	_, err := decoder.Decode(&internal.Entry{})
-	if assert.Error(err) {
-		assert.Equal(io.ErrUnexpectedEOF, err)
+	if assert.Error(t, err) {
+		assert.Equal(t, io.ErrUnexpectedEOF, err)
 	}
 }
 
 func TestInvalidValueKeySizes(t *testing.T) {
-	assert := assert.New(t)
 	maxKeySize, maxValueSize := uint32(10), uint64(20)
 
 	tests := []struct {
@@ -65,15 +61,14 @@ func TestInvalidValueKeySizes(t *testing.T) {
 			buf := bytes.NewBuffer(prefix)
 			decoder := NewDecoder(buf, maxKeySize, maxValueSize)
 			_, err := decoder.Decode(&internal.Entry{})
-			if assert.Error(err) {
-				assert.Equal(errInvalidKeyOrValueSize, err)
+			if assert.Error(t, err) {
+				assert.Equal(t, errInvalidKeyOrValueSize, err)
 			}
 		})
 	}
 }
 
 func TestTruncatedData(t *testing.T) {
-	assert := assert.New(t)
 	maxKeySize, maxValueSize := uint32(10), uint64(20)
 
 	key := []byte("foo")
@@ -102,29 +97,24 @@ func TestTruncatedData(t *testing.T) {
 			buf := bytes.NewBuffer(tests[i].data)
 			decoder := NewDecoder(buf, maxKeySize, maxValueSize)
 			_, err := decoder.Decode(&internal.Entry{})
-			if assert.Error(err) {
-				assert.Equal(errTruncatedData, err)
+			if assert.Error(t, err) {
+				assert.Equal(t, errTruncatedData, err)
 			}
 		})
 	}
 }
 
 func TestDecodeWithoutPrefix(t *testing.T) {
-	assert := assert.New(t)
 	e := internal.Entry{}
 	buf := []byte{0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 7, 109, 121, 107, 101, 121, 109, 121, 118, 97, 108, 117, 101, 0, 6, 81, 189, 0, 0, 0, 0, 95, 117, 28, 0}
 	valueOffset := uint32(5)
-	mockTime := time.Date(2020, 10, 1, 0, 0, 0, 0, time.UTC)
 	expectedEntry := internal.Entry{
 		Key:      []byte("mykey"),
 		Value:    []byte("myvalue"),
 		Checksum: 414141,
-		Expiry:   &mockTime,
 	}
 	decodeWithoutPrefix(buf[keySize+valueSize:], valueOffset, &e)
-	assert.Equal(expectedEntry.Key, e.Key)
-	assert.Equal(expectedEntry.Value, e.Value)
-	assert.Equal(expectedEntry.Checksum, e.Checksum)
-	assert.Equal(expectedEntry.Offset, e.Offset)
-	assert.Equal(*expectedEntry.Expiry, *e.Expiry)
+	assert.Equal(t, expectedEntry.Key, e.Key)
+	assert.Equal(t, expectedEntry.Value, e.Value)
+	assert.Equal(t, expectedEntry.Checksum, e.Checksum)
 }

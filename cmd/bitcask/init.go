@@ -7,12 +7,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
-var initdbCmd = &cobra.Command{
-	Use:     "initdb",
-	Aliases: []string{"create", "init"},
+var initCmd = &cobra.Command{
+	Use:     "init",
+	Aliases: []string{"create", "init", "new"},
 	Short:   "Initialize a new database",
 	Long:    `This initializes a new database with persisted options`,
 	Args:    cobra.ExactArgs(0),
@@ -50,17 +50,17 @@ var initdbCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(initdbCmd)
+	RootCmd.AddCommand(initCmd)
 
-	initdbCmd.PersistentFlags().IntP(
+	initCmd.PersistentFlags().IntP(
 		"with-max-datafile-size", "", bitcask.DefaultMaxDatafileSize,
 		"Maximum size of each datafile",
 	)
-	initdbCmd.PersistentFlags().Uint32P(
+	initCmd.PersistentFlags().Uint32P(
 		"with-max-key-size", "", bitcask.DefaultMaxKeySize,
 		"Maximum size of each key",
 	)
-	initdbCmd.PersistentFlags().Uint64P(
+	initCmd.PersistentFlags().Uint64P(
 		"with-max-value-size", "", bitcask.DefaultMaxValueSize,
 		"Maximum size of each value",
 	)

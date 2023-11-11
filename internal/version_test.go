@@ -8,8 +8,6 @@ import (
 )
 
 func TestFullVersion(t *testing.T) {
-	assert := assert.New(t)
-
 	expected := fmt.Sprintf("%s@%s", Version, Commit)
-	assert.Equal(expected, FullVersion())
+	assert.Equal(t, expected, FullVersion())
 }

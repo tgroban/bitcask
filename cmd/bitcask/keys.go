@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"git.mills.io/prologic/bitcask"
+	"go.mills.io/bitcask"
 )
 
 var keysCmd = &cobra.Command{
@@ -36,14 +36,10 @@ func keys(path string) int {
 	}
 	defer db.Close()
 
-	err = db.Fold(func(key []byte) error {
+	db.ForEach(func(key bitcask.Key) error {
 		fmt.Printf("%s\n", string(key))
 		return nil
 	})
-	if err != nil {
-		log.WithError(err).Error("error listing keys")
-		return 1
-	}
 
 	return 0
 }
