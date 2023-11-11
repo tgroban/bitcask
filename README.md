@@ -1,7 +1,5 @@
 # bitcask
 
-[![Build Status](https://ci.mills.io/api/badges/prologic/bitcask/status.svg)](https://ci.mills.io/prologic/bitcask)
-[![Go Report Card](https://goreportcard.com/badge/go.mills.io/bitcask)](https://goreportcard.com/report/go.mills.io/bitcask)
 [![Go Reference](https://pkg.go.dev/badge/go.mills.io/bitcask.svg)](https://pkg.go.dev/go.mills.io/bitcask)
 
 A high performance Key/Value store written in [Go](https://golang.org) with a predictable read/write performance and high throughput. Uses a [Bitcask](https://en.wikipedia.org/wiki/Bitcask) on-disk layout (LSM+WAL) similar to [Riak](https://riak.com/)
@@ -14,8 +12,9 @@ For a more feature-complete Redis-compatible server, distributed key/value store
 * Builtin CLI (`bitcask`)
 * Builtin Redis-compatible server (`bitcaskd`)
 * Predictable read/write performance
-* Low latency
 * High throughput (See: [Performance](README.md#Performance) )
+* Full Transactions support
+* Low latency
 
 ## Is Bitcask right for my project?
 
@@ -72,7 +71,7 @@ __NOTE__: Please read this carefully to identify whether using Bitcask is
 ## Development
 
 ```sh
-$ git clone https://go.mills.io/bitcask.git
+$ git clone https://git.mills.io/prologic/bitcask.git
 $ make
 ```
 
@@ -109,6 +108,8 @@ func main() {
 
 See the [GoDoc](https://godoc.org/go.mills.io/bitcask) for further
 documentation and other examples.
+
+See also [examples](./examples)
 
 ## Usage (tool)
 
@@ -209,14 +210,6 @@ For 128B values:
 * ~490,000 scans/sec
 
 The full benchmark above shows linear performance as you increase key/value sizes.
-
-## Support
-
-Support the ongoing development of Bitcask!
-
-**Sponsor**
-
-- Become a [Sponsor](https://www.patreon.com/prologic)
 
 ## Contributors
 
