@@ -1,4 +1,4 @@
-module go.mills.io/bitcask
+module go.mills.io/bitcask/v2
 
 go 1.18
 

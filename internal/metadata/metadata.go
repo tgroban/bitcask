@@ -3,7 +3,7 @@ package metadata
 import (
 	"os"
 
-	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/v2/internal"
 )
 
 type MetaData struct {

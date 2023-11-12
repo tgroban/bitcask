@@ -3,7 +3,7 @@ style: Github
 template: CHANGELOG.tpl.md
 info:
   title: CHANGELOG
-  repository_url: https://go.mills.io/bitcask
+  repository_url: https://go.mills.io/bitcask/v2
 options:
   commits:
     filters:

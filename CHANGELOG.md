@@ -1,6 +1,6 @@
 
 <a name="v2.0.0"></a>
-## [v2.0.0](https://go.mills.io/bitcask/compare/v1.0.2...v2.0.0) (2023-11-12)
+## [v2.0.0](https://go.mills.io/bitcask/v2/compare/v1.0.2...v2.0.0) (2023-11-12)
 
 ### Bug Fixes
 
@@ -20,7 +20,7 @@
 
 
 <a name="v1.0.2"></a>
-## [v1.0.2](https://go.mills.io/bitcask/compare/v1.0.1...v1.0.2) (2021-11-01)
+## [v1.0.2](https://go.mills.io/bitcask/v2/compare/v1.0.1...v1.0.2) (2021-11-01)
 
 ### Bug Fixes
 
@@ -33,7 +33,7 @@
 
 
 <a name="v1.0.1"></a>
-## [v1.0.1](https://go.mills.io/bitcask/compare/v1.0.0...v1.0.1) (2021-10-31)
+## [v1.0.1](https://go.mills.io/bitcask/v2/compare/v1.0.0...v1.0.1) (2021-10-31)
 
 ### Features
 
@@ -47,7 +47,7 @@
 
 
 <a name="v1.0.0"></a>
-## [v1.0.0](https://go.mills.io/bitcask/compare/1.0.0...v1.0.0) (2021-07-24)
+## [v1.0.0](https://go.mills.io/bitcask/v2/compare/1.0.0...v1.0.0) (2021-07-24)
 
 ### Updates
 
@@ -55,7 +55,7 @@
 
 
 <a name="1.0.0"></a>
-## [1.0.0](https://go.mills.io/bitcask/compare/v0.3.14...1.0.0) (2021-07-24)
+## [1.0.0](https://go.mills.io/bitcask/v2/compare/v0.3.14...1.0.0) (2021-07-24)
 
 ### Updates
 
@@ -64,7 +64,7 @@
 
 
 <a name="v0.3.14"></a>
-## [v0.3.14](https://go.mills.io/bitcask/compare/v0.3.13...v0.3.14) (2021-07-21)
+## [v0.3.14](https://go.mills.io/bitcask/v2/compare/v0.3.13...v0.3.14) (2021-07-21)
 
 ### Bug Fixes
 
@@ -84,7 +84,7 @@
 
 
 <a name="v0.3.13"></a>
-## [v0.3.13](https://go.mills.io/bitcask/compare/v0.3.12...v0.3.13) (2021-07-16)
+## [v0.3.13](https://go.mills.io/bitcask/v2/compare/v0.3.12...v0.3.13) (2021-07-16)
 
 ### Bug Fixes
 
@@ -100,7 +100,7 @@
 
 
 <a name="v0.3.12"></a>
-## [v0.3.12](https://go.mills.io/bitcask/compare/v0.3.11...v0.3.12) (2021-07-13)
+## [v0.3.12](https://go.mills.io/bitcask/v2/compare/v0.3.11...v0.3.12) (2021-07-13)
 
 ### Updates
 
@@ -108,7 +108,7 @@
 
 
 <a name="v0.3.11"></a>
-## [v0.3.11](https://go.mills.io/bitcask/compare/v0.3.10...v0.3.11) (2021-07-10)
+## [v0.3.11](https://go.mills.io/bitcask/v2/compare/v0.3.10...v0.3.11) (2021-07-10)
 
 ### Bug Fixes
 
@@ -130,7 +130,7 @@
 
 
 <a name="v0.3.10"></a>
-## [v0.3.10](https://go.mills.io/bitcask/compare/v0.3.9...v0.3.10) (2020-12-18)
+## [v0.3.10](https://go.mills.io/bitcask/v2/compare/v0.3.9...v0.3.10) (2020-12-18)
 
 ### Bug Fixes
 
@@ -151,7 +151,7 @@
 
 
 <a name="v0.3.9"></a>
-## [v0.3.9](https://go.mills.io/bitcask/compare/v0.3.8...v0.3.9) (2020-11-17)
+## [v0.3.9](https://go.mills.io/bitcask/v2/compare/v0.3.8...v0.3.9) (2020-11-17)
 
 ### Bug Fixes
 
@@ -163,7 +163,7 @@
 
 
 <a name="v0.3.8"></a>
-## [v0.3.8](https://go.mills.io/bitcask/compare/v0.3.7...v0.3.8) (2020-11-17)
+## [v0.3.8](https://go.mills.io/bitcask/v2/compare/v0.3.7...v0.3.8) (2020-11-17)
 
 ### Updates
 
@@ -171,7 +171,7 @@
 
 
 <a name="v0.3.7"></a>
-## [v0.3.7](https://go.mills.io/bitcask/compare/v0.3.6...v0.3.7) (2020-11-17)
+## [v0.3.7](https://go.mills.io/bitcask/v2/compare/v0.3.6...v0.3.7) (2020-11-17)
 
 ### Updates
 
@@ -179,7 +179,7 @@
 
 
 <a name="v0.3.6"></a>
-## [v0.3.6](https://go.mills.io/bitcask/compare/v0.3.5...v0.3.6) (2020-11-17)
+## [v0.3.6](https://go.mills.io/bitcask/v2/compare/v0.3.5...v0.3.6) (2020-11-17)
 
 ### Bug Fixes
 
@@ -209,7 +209,7 @@
 
 
 <a name="v0.3.5"></a>
-## [v0.3.5](https://go.mills.io/bitcask/compare/v0.3.4...v0.3.5) (2019-10-20)
+## [v0.3.5](https://go.mills.io/bitcask/v2/compare/v0.3.4...v0.3.5) (2019-10-20)
 
 ### Bug Fixes
 
@@ -231,11 +231,11 @@
 
 
 <a name="v0.3.4"></a>
-## [v0.3.4](https://go.mills.io/bitcask/compare/v0.3.3...v0.3.4) (2019-09-02)
+## [v0.3.4](https://go.mills.io/bitcask/v2/compare/v0.3.3...v0.3.4) (2019-09-02)
 
 
 <a name="v0.3.3"></a>
-## [v0.3.3](https://go.mills.io/bitcask/compare/v0.3.2...v0.3.3) (2019-09-02)
+## [v0.3.3](https://go.mills.io/bitcask/v2/compare/v0.3.2...v0.3.3) (2019-09-02)
 
 ### Bug Fixes
 
@@ -252,7 +252,7 @@
 
 
 <a name="v0.3.2"></a>
-## [v0.3.2](https://go.mills.io/bitcask/compare/v0.3.1...v0.3.2) (2019-08-08)
+## [v0.3.2](https://go.mills.io/bitcask/v2/compare/v0.3.1...v0.3.2) (2019-08-08)
 
 ### Updates
 
@@ -262,7 +262,7 @@
 
 
 <a name="v0.3.1"></a>
-## [v0.3.1](https://go.mills.io/bitcask/compare/v0.3.0...v0.3.1) (2019-08-05)
+## [v0.3.1](https://go.mills.io/bitcask/v2/compare/v0.3.0...v0.3.1) (2019-08-05)
 
 ### Updates
 
@@ -272,7 +272,7 @@
 
 
 <a name="v0.3.0"></a>
-## [v0.3.0](https://go.mills.io/bitcask/compare/v0.2.2...v0.3.0) (2019-07-29)
+## [v0.3.0](https://go.mills.io/bitcask/v2/compare/v0.2.2...v0.3.0) (2019-07-29)
 
 ### Updates
 
@@ -281,15 +281,15 @@
 
 
 <a name="v0.2.2"></a>
-## [v0.2.2](https://go.mills.io/bitcask/compare/v0.2.1...v0.2.2) (2019-07-27)
+## [v0.2.2](https://go.mills.io/bitcask/v2/compare/v0.2.1...v0.2.2) (2019-07-27)
 
 
 <a name="v0.2.1"></a>
-## [v0.2.1](https://go.mills.io/bitcask/compare/v0.2.0...v0.2.1) (2019-07-25)
+## [v0.2.1](https://go.mills.io/bitcask/v2/compare/v0.2.0...v0.2.1) (2019-07-25)
 
 
 <a name="v0.2.0"></a>
-## [v0.2.0](https://go.mills.io/bitcask/compare/v0.1.7...v0.2.0) (2019-07-25)
+## [v0.2.0](https://go.mills.io/bitcask/v2/compare/v0.1.7...v0.2.0) (2019-07-25)
 
 ### Bug Fixes
 
@@ -297,7 +297,7 @@
 
 
 <a name="v0.1.7"></a>
-## [v0.1.7](https://go.mills.io/bitcask/compare/v0.1.6...v0.1.7) (2019-07-19)
+## [v0.1.7](https://go.mills.io/bitcask/v2/compare/v0.1.6...v0.1.7) (2019-07-19)
 
 ### Bug Fixes
 
@@ -312,7 +312,7 @@
 
 
 <a name="v0.1.6"></a>
-## [v0.1.6](https://go.mills.io/bitcask/compare/v0.1.5...v0.1.6) (2019-04-01)
+## [v0.1.6](https://go.mills.io/bitcask/v2/compare/v0.1.5...v0.1.6) (2019-04-01)
 
 ### Features
 
@@ -321,7 +321,7 @@
 
 
 <a name="v0.1.5"></a>
-## [v0.1.5](https://go.mills.io/bitcask/compare/v0.1.4...v0.1.5) (2019-03-30)
+## [v0.1.5](https://go.mills.io/bitcask/v2/compare/v0.1.4...v0.1.5) (2019-03-30)
 
 ### Documentation
 
@@ -337,27 +337,27 @@
 
 
 <a name="v0.1.4"></a>
-## [v0.1.4](https://go.mills.io/bitcask/compare/v0.1.3...v0.1.4) (2019-03-23)
+## [v0.1.4](https://go.mills.io/bitcask/v2/compare/v0.1.3...v0.1.4) (2019-03-23)
 
 
 <a name="v0.1.3"></a>
-## [v0.1.3](https://go.mills.io/bitcask/compare/v0.1.2...v0.1.3) (2019-03-23)
+## [v0.1.3](https://go.mills.io/bitcask/v2/compare/v0.1.2...v0.1.3) (2019-03-23)
 
 
 <a name="v0.1.2"></a>
-## [v0.1.2](https://go.mills.io/bitcask/compare/v0.1.1...v0.1.2) (2019-03-22)
+## [v0.1.2](https://go.mills.io/bitcask/v2/compare/v0.1.1...v0.1.2) (2019-03-22)
 
 
 <a name="v0.1.1"></a>
-## [v0.1.1](https://go.mills.io/bitcask/compare/v0.1.0...v0.1.1) (2019-03-22)
+## [v0.1.1](https://go.mills.io/bitcask/v2/compare/v0.1.0...v0.1.1) (2019-03-22)
 
 
 <a name="v0.1.0"></a>
-## [v0.1.0](https://go.mills.io/bitcask/compare/0.0.26...v0.1.0) (2019-03-22)
+## [v0.1.0](https://go.mills.io/bitcask/v2/compare/0.0.26...v0.1.0) (2019-03-22)
 
 
 <a name="0.0.26"></a>
-## [0.0.26](https://go.mills.io/bitcask/compare/0.0.25...0.0.26) (2019-03-21)
+## [0.0.26](https://go.mills.io/bitcask/v2/compare/0.0.25...0.0.26) (2019-03-21)
 
 ### Features
 
@@ -370,7 +370,7 @@
 
 
 <a name="0.0.25"></a>
-## [0.0.25](https://go.mills.io/bitcask/compare/0.0.24...0.0.25) (2019-03-21)
+## [0.0.25](https://go.mills.io/bitcask/v2/compare/0.0.24...0.0.25) (2019-03-21)
 
 ### Features
 
@@ -384,11 +384,11 @@
 
 
 <a name="0.0.24"></a>
-## [0.0.24](https://go.mills.io/bitcask/compare/0.0.23...0.0.24) (2019-03-20)
+## [0.0.24](https://go.mills.io/bitcask/v2/compare/0.0.23...0.0.24) (2019-03-20)
 
 
 <a name="0.0.23"></a>
-## [0.0.23](https://go.mills.io/bitcask/compare/0.0.22...0.0.23) (2019-03-20)
+## [0.0.23](https://go.mills.io/bitcask/v2/compare/0.0.22...0.0.23) (2019-03-20)
 
 ### Features
 
@@ -396,27 +396,27 @@
 
 
 <a name="0.0.22"></a>
-## [0.0.22](https://go.mills.io/bitcask/compare/0.0.21...0.0.22) (2019-03-18)
+## [0.0.22](https://go.mills.io/bitcask/v2/compare/0.0.21...0.0.22) (2019-03-18)
 
 
 <a name="0.0.21"></a>
-## [0.0.21](https://go.mills.io/bitcask/compare/0.0.20...0.0.21) (2019-03-18)
+## [0.0.21](https://go.mills.io/bitcask/v2/compare/0.0.20...0.0.21) (2019-03-18)
 
 
 <a name="0.0.20"></a>
-## [0.0.20](https://go.mills.io/bitcask/compare/0.0.19...0.0.20) (2019-03-17)
+## [0.0.20](https://go.mills.io/bitcask/v2/compare/0.0.19...0.0.20) (2019-03-17)
 
 
 <a name="0.0.19"></a>
-## [0.0.19](https://go.mills.io/bitcask/compare/0.0.18...0.0.19) (2019-03-17)
+## [0.0.19](https://go.mills.io/bitcask/v2/compare/0.0.18...0.0.19) (2019-03-17)
 
 
 <a name="0.0.18"></a>
-## [0.0.18](https://go.mills.io/bitcask/compare/0.0.17...0.0.18) (2019-03-16)
+## [0.0.18](https://go.mills.io/bitcask/v2/compare/0.0.17...0.0.18) (2019-03-16)
 
 
 <a name="0.0.17"></a>
-## [0.0.17](https://go.mills.io/bitcask/compare/0.0.16...0.0.17) (2019-03-16)
+## [0.0.17](https://go.mills.io/bitcask/v2/compare/0.0.16...0.0.17) (2019-03-16)
 
 ### Features
 
@@ -424,11 +424,11 @@
 
 
 <a name="0.0.16"></a>
-## [0.0.16](https://go.mills.io/bitcask/compare/0.0.15...0.0.16) (2019-03-16)
+## [0.0.16](https://go.mills.io/bitcask/v2/compare/0.0.15...0.0.16) (2019-03-16)
 
 
 <a name="0.0.15"></a>
-## [0.0.15](https://go.mills.io/bitcask/compare/0.0.14...0.0.15) (2019-03-16)
+## [0.0.15](https://go.mills.io/bitcask/v2/compare/0.0.14...0.0.15) (2019-03-16)
 
 ### Bug Fixes
 
@@ -436,11 +436,11 @@
 
 
 <a name="0.0.14"></a>
-## [0.0.14](https://go.mills.io/bitcask/compare/0.0.13...0.0.14) (2019-03-16)
+## [0.0.14](https://go.mills.io/bitcask/v2/compare/0.0.13...0.0.14) (2019-03-16)
 
 
 <a name="0.0.13"></a>
-## [0.0.13](https://go.mills.io/bitcask/compare/0.0.12...0.0.13) (2019-03-16)
+## [0.0.13](https://go.mills.io/bitcask/v2/compare/0.0.12...0.0.13) (2019-03-16)
 
 ### Features
 
@@ -448,11 +448,11 @@
 
 
 <a name="0.0.12"></a>
-## [0.0.12](https://go.mills.io/bitcask/compare/0.0.11...0.0.12) (2019-03-14)
+## [0.0.12](https://go.mills.io/bitcask/v2/compare/0.0.11...0.0.12) (2019-03-14)
 
 
 <a name="0.0.11"></a>
-## [0.0.11](https://go.mills.io/bitcask/compare/0.0.10...0.0.11) (2019-03-14)
+## [0.0.11](https://go.mills.io/bitcask/v2/compare/0.0.10...0.0.11) (2019-03-14)
 
 ### Updates
 
@@ -460,7 +460,7 @@
 
 
 <a name="0.0.10"></a>
-## [0.0.10](https://go.mills.io/bitcask/compare/0.0.9...0.0.10) (2019-03-14)
+## [0.0.10](https://go.mills.io/bitcask/v2/compare/0.0.9...0.0.10) (2019-03-14)
 
 ### Bug Fixes
 
@@ -473,19 +473,19 @@
 
 
 <a name="0.0.9"></a>
-## [0.0.9](https://go.mills.io/bitcask/compare/0.0.8...0.0.9) (2019-03-14)
+## [0.0.9](https://go.mills.io/bitcask/v2/compare/0.0.8...0.0.9) (2019-03-14)
 
 
 <a name="0.0.8"></a>
-## [0.0.8](https://go.mills.io/bitcask/compare/0.0.7...0.0.8) (2019-03-13)
+## [0.0.8](https://go.mills.io/bitcask/v2/compare/0.0.7...0.0.8) (2019-03-13)
 
 
 <a name="0.0.7"></a>
-## [0.0.7](https://go.mills.io/bitcask/compare/0.0.6...0.0.7) (2019-03-13)
+## [0.0.7](https://go.mills.io/bitcask/v2/compare/0.0.6...0.0.7) (2019-03-13)
 
 
 <a name="0.0.6"></a>
-## [0.0.6](https://go.mills.io/bitcask/compare/0.0.5...0.0.6) (2019-03-13)
+## [0.0.6](https://go.mills.io/bitcask/v2/compare/0.0.5...0.0.6) (2019-03-13)
 
 ### Bug Fixes
 
@@ -493,7 +493,7 @@
 
 
 <a name="0.0.5"></a>
-## [0.0.5](https://go.mills.io/bitcask/compare/0.0.4...0.0.5) (2019-03-13)
+## [0.0.5](https://go.mills.io/bitcask/v2/compare/0.0.4...0.0.5) (2019-03-13)
 
 ### Features
 
@@ -505,7 +505,7 @@
 
 
 <a name="0.0.4"></a>
-## [0.0.4](https://go.mills.io/bitcask/compare/0.0.3...0.0.4) (2019-03-13)
+## [0.0.4](https://go.mills.io/bitcask/v2/compare/0.0.3...0.0.4) (2019-03-13)
 
 ### Features
 
@@ -513,11 +513,11 @@
 
 
 <a name="0.0.3"></a>
-## [0.0.3](https://go.mills.io/bitcask/compare/0.0.2...0.0.3) (2019-03-13)
+## [0.0.3](https://go.mills.io/bitcask/v2/compare/0.0.2...0.0.3) (2019-03-13)
 
 
 <a name="0.0.2"></a>
-## [0.0.2](https://go.mills.io/bitcask/compare/0.0.1...0.0.2) (2019-03-13)
+## [0.0.2](https://go.mills.io/bitcask/v2/compare/0.0.1...0.0.2) (2019-03-13)
 
 
 <a name="0.0.1"></a>

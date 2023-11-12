@@ -1,6 +1,6 @@
 package bitcask
 
-import "go.mills.io/bitcask/internal"
+import "go.mills.io/bitcask/v2/internal"
 
 // Stats is a struct returned by Stats() on an open bitcask instance
 type Stats struct {

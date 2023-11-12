@@ -1,14 +1,14 @@
 # bitcask
 
-[![Go Reference](https://pkg.go.dev/badge/go.mills.io/bitcask.svg)](https://pkg.go.dev/go.mills.io/bitcask)
+[![Go Reference](https://pkg.go.dev/badge/go.mills.io/bitcask/v2.svg)](https://pkg.go.dev/go.mills.io/bitcask/v2)
 
 A high performance Key/Value store written in [Go](https://golang.org) with a predictable read/write performance and high throughput. Uses a [Bitcask](https://en.wikipedia.org/wiki/Bitcask) on-disk layout (LSM+WAL) similar to [Riak](https://riak.com/)
 
-For a more feature-complete Redis-compatible server, distributed key/value store have a look at [Bitraft](https://git.mills.io/prologic/bitraft) which uses this library as its backend. Use [Bitcask](https://go.mills.io/bitcask) as a starting point or if you want to embed in your application, use [Bitraft](https://git.mills.io/prologic/bitraft) if you need a complete server/client solution with high availability with a Redis-compatible API.
+For a more feature-complete Redis-compatible server, distributed key/value store have a look at [Bitraft](https://git.mills.io/prologic/bitraft) which uses this library as its backend. Use [Bitcask](https://go.mills.io/bitcask/v2) as a starting point or if you want to embed in your application, use [Bitraft](https://git.mills.io/prologic/bitraft) if you need a complete server/client solution with high availability with a Redis-compatible API.
 
 ## Features
 
-* Embedded (`import "go.mills.io/bitcask"`)
+* Embedded (`import "go.mills.io/bitcask/v2"`)
 * Builtin CLI (`bitcask`)
 * Builtin Redis-compatible server (`bitcaskd`)
 * Predictable read/write performance
@@ -78,7 +78,7 @@ $ make
 ## Install
 
 ```sh
-$ go get go.mills.io/bitcask
+$ go get go.mills.io/bitcask/v2
 ```
 
 ## Usage (library)
@@ -86,7 +86,7 @@ $ go get go.mills.io/bitcask
 Install the package into your project:
 
 ```sh
-$ go get go.mills.io/bitcask
+$ go get go.mills.io/bitcask/v2
 ```
 
 ```go
@@ -94,7 +94,7 @@ package main
 
 import (
 	"log"
-	"go.mills.io/bitcask"
+	"go.mills.io/bitcask/v2"
 )
 
 func main() {
@@ -106,7 +106,7 @@ func main() {
 }
 ```
 
-See the [GoDoc](https://godoc.org/go.mills.io/bitcask) for further
+See the [GoDoc](https://godoc.org/go.mills.io/bitcask/v2) for further
 documentation and other examples.
 
 See also [examples](./examples)
@@ -219,9 +219,9 @@ to the project. If you contribute a PR please consider adding your name there.
 ## Related Projects
 
 - [bitraft](https://git.mills.io/prologic/bitraft) -- A Distributed Key/Value store (_using Raft_) with a Redis compatible protocol.
-- [bitcaskfs](https://go.mills.io/bitcaskfs) -- A FUSE file system for mounting a Bitcask database.
-- [bitcask-bench](https://go.mills.io/bitcask-bench) -- A benchmarking tool comparing Bitcask and several other Go key/value libraries.
+- [bitcaskfs](https://go.mills.io/bitcask/v2fs) -- A FUSE file system for mounting a Bitcask database.
+- [bitcask-bench](https://go.mills.io/bitcask/v2-bench) -- A benchmarking tool comparing Bitcask and several other Go key/value libraries.
 
 ## License
 
-bitcask is licensed under the term of the [MIT License](https://go.mills.io/bitcask/blob/master/LICENSE)
+bitcask is licensed under the term of the [MIT License](https://go.mills.io/bitcask/v2/blob/master/LICENSE)

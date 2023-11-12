@@ -5,7 +5,7 @@ import (
 	"os"
 
 	iradix "github.com/hashicorp/go-immutable-radix/v2"
-	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/v2/internal"
 )
 
 // Indexer is an interface for loading and saving the index (an Adaptive Radix Tree)

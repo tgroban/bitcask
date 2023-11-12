@@ -6,8 +6,8 @@ import (
 
 	"github.com/mattetti/filebuffer"
 
-	"go.mills.io/bitcask/internal"
-	"go.mills.io/bitcask/internal/data/codec"
+	"go.mills.io/bitcask/v2/internal"
+	"go.mills.io/bitcask/v2/internal/data/codec"
 )
 
 type inMemoryDatafile struct {

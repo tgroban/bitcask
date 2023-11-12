@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/v2/internal"
 )
 
 var (

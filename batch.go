@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"go.mills.io/bitcask/internal"
-	"go.mills.io/bitcask/internal/config"
-	"go.mills.io/bitcask/internal/data/codec"
+	"go.mills.io/bitcask/v2/internal"
+	"go.mills.io/bitcask/v2/internal/config"
+	"go.mills.io/bitcask/v2/internal/data/codec"
 )
 
 type batchOptions struct {

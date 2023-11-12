@@ -9,11 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.mills.io/bitcask"
-	"go.mills.io/bitcask/internal"
-	"go.mills.io/bitcask/internal/config"
-	"go.mills.io/bitcask/internal/data/codec"
-	"go.mills.io/bitcask/internal/index"
+	"go.mills.io/bitcask/v2"
+	"go.mills.io/bitcask/v2/internal"
+	"go.mills.io/bitcask/v2/internal/config"
+	"go.mills.io/bitcask/v2/internal/data/codec"
+	"go.mills.io/bitcask/v2/internal/index"
 )
 
 var recoveryCmd = &cobra.Command{

@@ -15,11 +15,11 @@ import (
 	"github.com/gofrs/flock"
 	iradix "github.com/hashicorp/go-immutable-radix/v2"
 
-	"go.mills.io/bitcask/internal"
-	"go.mills.io/bitcask/internal/config"
-	"go.mills.io/bitcask/internal/data"
-	"go.mills.io/bitcask/internal/index"
-	"go.mills.io/bitcask/internal/metadata"
+	"go.mills.io/bitcask/v2/internal"
+	"go.mills.io/bitcask/v2/internal/config"
+	"go.mills.io/bitcask/v2/internal/data"
+	"go.mills.io/bitcask/v2/internal/index"
+	"go.mills.io/bitcask/v2/internal/metadata"
 )
 
 const lockfile = "lock"

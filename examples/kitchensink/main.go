@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"go.mills.io/bitcask"
+	"go.mills.io/bitcask/v2"
 )
 
 func main() {

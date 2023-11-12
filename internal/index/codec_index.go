@@ -6,7 +6,7 @@ import (
 
 	iradix "github.com/hashicorp/go-immutable-radix/v2"
 	"github.com/pkg/errors"
-	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/v2/internal"
 )
 
 var (

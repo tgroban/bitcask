@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"go.mills.io/bitcask"
+	"go.mills.io/bitcask/v2"
 )
 
 var importCmd = &cobra.Command{

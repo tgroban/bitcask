@@ -3,7 +3,7 @@ package bitcask
 import (
 	"os"
 
-	"go.mills.io/bitcask/internal/config"
+	"go.mills.io/bitcask/v2/internal/config"
 )
 
 const (

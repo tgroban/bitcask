@@ -3,7 +3,7 @@ package bitcask
 import (
 	"fmt"
 
-	"go.mills.io/bitcask/internal"
+	"go.mills.io/bitcask/v2/internal"
 )
 
 // Key is a slice of bytes that represents a key in a key/value pair
