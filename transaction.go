@@ -148,11 +148,11 @@ func (t *transaction) ForEach(f KeyFunc) (err error) {
 }
 
 func (t *transaction) Iterator(opts ...IteratorOption) Iterator {
-	it := &iterator{keys: t, opts: &IteratorOptions{}}
+	it := &iterator{keys: t, opts: &iteratorOptions{}}
 	for _, opt := range opts {
 		opt(it)
 	}
-	if it.opts.Reverse {
+	if it.opts.reverse {
 		it.itr = t.trie.Root().ReverseIterator()
 	} else {
 		it.itf = t.trie.Root().Iterator()

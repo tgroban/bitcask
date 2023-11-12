@@ -15,9 +15,8 @@ var (
 	ErrStopIteration = errors.New("error: iterator has no more items")
 )
 
-// IteratorOptions ...
-type IteratorOptions struct {
-	Reverse bool
+type iteratorOptions struct {
+	reverse bool
 }
 
 // IteratorOption ...
@@ -26,7 +25,7 @@ type IteratorOption func(it *iterator)
 // Reverse ...
 func Reverse() IteratorOption {
 	return func(it *iterator) {
-		it.opts.Reverse = true
+		it.opts.reverse = true
 	}
 }
 
@@ -34,7 +33,7 @@ type iterator struct {
 	keys Keys
 	itf  *iradix.Iterator[internal.Item]
 	itr  *iradix.ReverseIterator[internal.Item]
-	opts *IteratorOptions
+	opts *iteratorOptions
 }
 
 func (it *iterator) Close() error {
@@ -52,7 +51,7 @@ func (it *iterator) Next() (*Item, error) {
 		more bool
 	)
 
-	if it.opts.Reverse {
+	if it.opts.reverse {
 		key, _, more = it.itr.Previous()
 	} else {
 		key, _, more = it.itf.Next()
@@ -71,7 +70,7 @@ func (it *iterator) Next() (*Item, error) {
 }
 
 func (it *iterator) SeekPrefix(prefix Key) (*Item, error) {
-	if it.opts.Reverse {
+	if it.opts.reverse {
 		it.itr.SeekPrefix(prefix)
 	} else {
 		it.itf.SeekPrefix(prefix)
@@ -81,11 +80,11 @@ func (it *iterator) SeekPrefix(prefix Key) (*Item, error) {
 
 // Iterator returns an iterator for iterating through keys in key order
 func (b *bitcask) Iterator(opts ...IteratorOption) Iterator {
-	it := &iterator{keys: b, opts: &IteratorOptions{}}
+	it := &iterator{keys: b, opts: &iteratorOptions{}}
 	for _, opt := range opts {
 		opt(it)
 	}
-	if it.opts.Reverse {
+	if it.opts.reverse {
 		it.itr = b.trie.Root().ReverseIterator()
 	} else {
 		it.itf = b.trie.Root().Iterator()
