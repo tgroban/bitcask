@@ -1,10 +1,26 @@
 
+<a name="v2.0.3"></a>
+## [v2.0.3](https://go.mills.io/bitcask/v2/compare/v2.0.2...v2.0.3) (2023-11-12)
+
+### Features
+
+* Add internal benchmarks for encoder/decoder
+
+### Updates
+
+* Update dependencies
+
+
 <a name="v2.0.2"></a>
 ## [v2.0.2](https://go.mills.io/bitcask/v2/compare/v2.0.1...v2.0.2) (2023-11-12)
 
 ### Bug Fixes
 
 * Fix write performance, cleanup code and fix internal tests
+
+### Updates
+
+* Update CHANGELOG for v2.0.2
 
 
 <a name="v2.0.1"></a>
