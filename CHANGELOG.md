@@ -1,4 +1,12 @@
 
+<a name="v2.0.1"></a>
+## [v2.0.1](https://go.mills.io/bitcask/v2/compare/v2.0.0...v2.0.1) (2023-11-12)
+
+### Bug Fixes
+
+* Fix v2 import path
+
+
 <a name="v2.0.0"></a>
 ## [v2.0.0](https://go.mills.io/bitcask/v2/compare/v1.0.2...v2.0.0) (2023-11-12)
 
@@ -14,6 +22,7 @@
 
 ### Updates
 
+* Update CHANGELOG for v2.0.0
 * Update performance section (again)
 * Update Performance section in README
 * Update README
@@ -47,18 +56,11 @@
 
 
 <a name="v1.0.0"></a>
-## [v1.0.0](https://go.mills.io/bitcask/v2/compare/1.0.0...v1.0.0) (2021-07-24)
+## [v1.0.0](https://go.mills.io/bitcask/v2/compare/v0.3.14...v1.0.0) (2021-07-24)
 
 ### Updates
 
 * Update CHANGELOG for v1.0.0
-
-
-<a name="1.0.0"></a>
-## [1.0.0](https://go.mills.io/bitcask/v2/compare/v0.3.14...1.0.0) (2021-07-24)
-
-### Updates
-
 * Update CHANGELOG for 1.0.0
 * Update README
 
@@ -353,11 +355,14 @@
 
 
 <a name="v0.1.0"></a>
-## [v0.1.0](https://go.mills.io/bitcask/v2/compare/0.0.26...v0.1.0) (2019-03-22)
+## v0.1.0 (2019-03-22)
 
+### Bug Fixes
 
-<a name="0.0.26"></a>
-## [0.0.26](https://go.mills.io/bitcask/v2/compare/0.0.25...0.0.26) (2019-03-21)
+* Fix a race condition + Use my fork of trie
+* Fix concurrent read bug
+* Fix concurrent write bug with multiple goroutines writing to the to the active datafile
+* Fix usage output of bitcaskd
 
 ### Features
 
@@ -367,159 +372,19 @@
 * Add Len() to exported API (extended API)
 * Add Keys() to exported API (extended API)
 * Add EXISTS command to server (bitraftd)
-
-
-<a name="0.0.25"></a>
-## [0.0.25](https://go.mills.io/bitcask/v2/compare/0.0.24...0.0.25) (2019-03-21)
-
-### Features
-
 * Add Has() to exported API (extended API)
 * Add MergeOpen test case
-
-### Updates
-
-* Update README.md
-* Update README.md
-
-
-<a name="0.0.24"></a>
-## [0.0.24](https://go.mills.io/bitcask/v2/compare/0.0.23...0.0.24) (2019-03-20)
-
-
-<a name="0.0.23"></a>
-## [0.0.23](https://go.mills.io/bitcask/v2/compare/0.0.22...0.0.23) (2019-03-20)
-
-### Features
-
 * Add bitcaskd to install target
-
-
-<a name="0.0.22"></a>
-## [0.0.22](https://go.mills.io/bitcask/v2/compare/0.0.21...0.0.22) (2019-03-18)
-
-
-<a name="0.0.21"></a>
-## [0.0.21](https://go.mills.io/bitcask/v2/compare/0.0.20...0.0.21) (2019-03-18)
-
-
-<a name="0.0.20"></a>
-## [0.0.20](https://go.mills.io/bitcask/v2/compare/0.0.19...0.0.20) (2019-03-17)
-
-
-<a name="0.0.19"></a>
-## [0.0.19](https://go.mills.io/bitcask/v2/compare/0.0.18...0.0.19) (2019-03-17)
-
-
-<a name="0.0.18"></a>
-## [0.0.18](https://go.mills.io/bitcask/v2/compare/0.0.17...0.0.18) (2019-03-16)
-
-
-<a name="0.0.17"></a>
-## [0.0.17](https://go.mills.io/bitcask/v2/compare/0.0.16...0.0.17) (2019-03-16)
-
-### Features
-
 * Add CRC Checksum checks on reading values back
-
-
-<a name="0.0.16"></a>
-## [0.0.16](https://go.mills.io/bitcask/v2/compare/0.0.15...0.0.16) (2019-03-16)
-
-
-<a name="0.0.15"></a>
-## [0.0.15](https://go.mills.io/bitcask/v2/compare/0.0.14...0.0.15) (2019-03-16)
-
-### Bug Fixes
-
-* Fix a race condition + Use my fork of trie
-
-
-<a name="0.0.14"></a>
-## [0.0.14](https://go.mills.io/bitcask/v2/compare/0.0.13...0.0.14) (2019-03-16)
-
-
-<a name="0.0.13"></a>
-## [0.0.13](https://go.mills.io/bitcask/v2/compare/0.0.12...0.0.13) (2019-03-16)
-
-### Features
-
 * Add prefix scan for keys using a Trie
-
-
-<a name="0.0.12"></a>
-## [0.0.12](https://go.mills.io/bitcask/v2/compare/0.0.11...0.0.12) (2019-03-14)
-
-
-<a name="0.0.11"></a>
-## [0.0.11](https://go.mills.io/bitcask/v2/compare/0.0.10...0.0.11) (2019-03-14)
-
-### Updates
-
-* Update README.md
-
-
-<a name="0.0.10"></a>
-## [0.0.10](https://go.mills.io/bitcask/v2/compare/0.0.9...0.0.10) (2019-03-14)
-
-### Bug Fixes
-
-* Fix concurrent read bug
-* Fix concurrent write bug with multiple goroutines writing to the to the active datafile
-
-### Updates
-
-* Update README.md
-
-
-<a name="0.0.9"></a>
-## [0.0.9](https://go.mills.io/bitcask/v2/compare/0.0.8...0.0.9) (2019-03-14)
-
-
-<a name="0.0.8"></a>
-## [0.0.8](https://go.mills.io/bitcask/v2/compare/0.0.7...0.0.8) (2019-03-13)
-
-
-<a name="0.0.7"></a>
-## [0.0.7](https://go.mills.io/bitcask/v2/compare/0.0.6...0.0.7) (2019-03-13)
-
-
-<a name="0.0.6"></a>
-## [0.0.6](https://go.mills.io/bitcask/v2/compare/0.0.5...0.0.6) (2019-03-13)
-
-### Bug Fixes
-
-* Fix usage output of bitcaskd
-
-
-<a name="0.0.5"></a>
-## [0.0.5](https://go.mills.io/bitcask/v2/compare/0.0.4...0.0.5) (2019-03-13)
-
-### Features
-
 * Add a simple Redis compatible server daemon (bitcaskd)
-
-### Updates
-
-* Update README.md
-
-
-<a name="0.0.4"></a>
-## [0.0.4](https://go.mills.io/bitcask/v2/compare/0.0.3...0.0.4) (2019-03-13)
-
-### Features
-
 * Add flock on database Open()/Close() to prevent multiple concurrent processes write access. Fixes #2
 
+### Updates
 
-<a name="0.0.3"></a>
-## [0.0.3](https://go.mills.io/bitcask/v2/compare/0.0.2...0.0.3) (2019-03-13)
-
-
-<a name="0.0.2"></a>
-## [0.0.2](https://go.mills.io/bitcask/v2/compare/0.0.1...0.0.2) (2019-03-13)
-
-
-<a name="0.0.1"></a>
-## 0.0.1 (2019-03-13)
+* Update README.md
+* Update README.md
+* Update README.md
+* Update README.md
+* Update README.md
 
