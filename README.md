@@ -162,14 +162,9 @@ $ docker run -d -p 6379:6379 prologic/bitcask
 
 ## Performance
 
-Benchmarks run on a 11" MacBook with a 1.4Ghz Intel Core i7:
-
 ```sh
 $ make bench
----
-goos: darwin
-goarch: arm64
-pkg: go.mills.io/bitcask
+...
 
 BenchmarkGet/128B-10             1029229              1191 ns/op         107.46 MB/s        4864 B/op         14 allocs/op
 BenchmarkGet/256B-10              916785              1190 ns/op         215.16 MB/s        4992 B/op         14 allocs/op
@@ -200,16 +195,17 @@ BenchmarkPut/16KSync-10              234           5367222 ns/op           3.05 
 BenchmarkPut/32KSync-10              198           5594519 ns/op           5.86 MB/s       51996 B/op         48 allocs/op
 
 BenchmarkScan-10                 1112818              1066 ns/op            4986 B/op         22 allocs/op
-PASS
 ```
 
 For 128B values:
 
-* ~300,000 reads/sec
-* ~90,000 writes/sec
-* ~490,000 scans/sec
+* ~1,000,000 reads/sec
+* ~250,000 writes/sec
+* ~1,100,000 scans/sec
 
 The full benchmark above shows linear performance as you increase key/value sizes.
+
+As far as benchmarks go, this is all contrived and generally not typical of any real workloads. These benchmarks were run on a 2022 Mac Studio M1 Max with 32GB of RAM. Your results may differ.
 
 ## Contributors
 
