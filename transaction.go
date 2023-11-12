@@ -3,6 +3,7 @@ package bitcask
 import (
 	"bytes"
 	"hash/crc32"
+	"log"
 
 	"github.com/abcum/lcp"
 	iradix "github.com/hashicorp/go-immutable-radix/v2"
@@ -168,6 +169,8 @@ func (t *transaction) Range(start Key, end Key, f KeyFunc) (err error) {
 	if commonPrefix == nil {
 		return ErrInvalidRange
 	}
+
+	log.Printf("commonPrefix: %q\n", commonPrefix)
 
 	t.trie.Root().WalkPrefix(commonPrefix, func(key []byte, item internal.Item) bool {
 		if bytes.Compare(key, start) >= 0 && bytes.Compare(key, end) <= 0 {

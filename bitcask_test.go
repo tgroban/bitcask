@@ -1225,7 +1225,7 @@ func TestScan(t *testing.T) {
 			return nil
 		})
 		values = SortByteArrays(values)
-		assert.Equal(t, expected, values)
+		assert.EqualValues(t, expected, values)
 	})
 }
 

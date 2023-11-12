@@ -75,9 +75,17 @@ type Keys interface {
 	Put(Key, Value) error
 }
 
+// Types is an interface for high-level data types
+type Types interface {
+	Hash(Key) *Hash
+	List(Key) *List
+	SortedSet(Key) *SortedSet
+}
+
 // DB is an interface that describes the public facing API of a Bitcask database
 type DB interface {
 	Keys
+	Types
 
 	Path() string
 
