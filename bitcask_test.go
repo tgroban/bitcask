@@ -529,7 +529,7 @@ func TestSync(t *testing.T) {
 	var db DB
 
 	t.Run("Open", func(t *testing.T) {
-		db, err = Open(testDir, WithSync(true))
+		db, err = Open(testDir, WithSyncWrites(true))
 		assert.NoError(t, err)
 	})
 
@@ -1290,8 +1290,32 @@ func TestLocking(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
+	require.NoError(t, db.Put(Key("foo"), Value("bar")))
+
 	_, err = Open(testDir)
-	assert.Error(t, err)
+	require.Error(t, err)
+	assert.EqualError(t, err, ErrDatabaseLocked.Error())
+
+	rdb, err := Open(testDir, WithAutoReadonly(true))
+	require.NoError(t, err)
+	assert.True(t, rdb.Readonly())
+
+	// Assert that we cannot write any keys and get an error that the database is locked.
+	err = rdb.Put(Key("foo"), Value("bar"))
+	require.Error(t, err)
+	assert.EqualError(t, err, ErrDatabaseReadonly.Error())
+
+	// Same with delete.
+	err = rdb.Delete(Key("foo"))
+	require.Error(t, err)
+	assert.EqualError(t, err, ErrDatabaseReadonly.Error())
+
+	// But we can perform read operations on a readonly database.
+	actual, err := db.Get(Key("foo"))
+	expected := Value("bar")
+	require.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
 }
 
 func TestLockingAfterMerge(t *testing.T) {
@@ -1302,15 +1326,12 @@ func TestLockingAfterMerge(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	_, err = Open(testDir)
-	assert.Error(t, err)
+	rdb, err := Open(testDir, WithAutoReadonly(true))
+	require.NoError(t, err)
+	assert.True(t, rdb.Readonly())
 
 	err = db.Merge()
 	assert.NoError(t, err)
-
-	// This should still error.
-	_, err = Open(testDir)
-	assert.Error(t, err)
 }
 
 type benchmarkTestCase struct {
@@ -1398,10 +1419,10 @@ func BenchmarkPut(b *testing.B) {
 
 	variants := map[string][]Option{
 		"NoSync": {
-			WithSync(false),
+			WithSyncWrites(false),
 		},
 		"Sync": {
-			WithSync(true),
+			WithSyncWrites(true),
 		},
 	}
 

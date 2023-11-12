@@ -87,9 +87,13 @@ func (b *bitcask) Batch(opts ...BatchOption) Batch {
 	return batch
 }
 
-func (b *bitcask) Write(batch Batch) error {
+func (b *bitcask) WriteBatch(batch Batch) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if b.current.Readonly() {
+		return ErrDatabaseReadonly
+	}
 
 	b.metadata.IndexUpToDate = false
 
@@ -103,7 +107,7 @@ func (b *bitcask) Write(batch Batch) error {
 			return err
 		}
 
-		if b.config.Sync {
+		if b.config.SyncWrites {
 			if err := b.current.Sync(); err != nil {
 				return err
 			}

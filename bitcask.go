@@ -42,21 +42,31 @@ type bitcask struct {
 // Close() as this is the only way to cleanup the lock held by the open
 // database.
 func (b *bitcask) Close() error {
+	// Acquire an exclusive write lock as we're closing the database now.
+	b.mu.Lock()
 	defer func() {
+		// First unlock our file lock on the database.
+		// Note we're ignoring any errors here as we're closing the database
+		// anyway and we're inside a defer, and there isn't much we can do.
 		b.flock.Unlock()
+
+		// And finally release our exclusive in-process lock.
+		b.mu.Unlock()
 	}()
 
 	return b.close()
 }
 
 func (b *bitcask) close() error {
-	if err := b.saveIndexes(); err != nil {
-		return err
-	}
+	if !b.current.Readonly() {
+		if err := b.saveIndexes(); err != nil {
+			return err
+		}
 
-	b.metadata.IndexUpToDate = true
-	if err := b.saveMetadata(); err != nil {
-		return err
+		b.metadata.IndexUpToDate = true
+		if err := b.saveMetadata(); err != nil {
+			return err
+		}
 	}
 
 	for _, df := range b.datafiles {
@@ -70,11 +80,26 @@ func (b *bitcask) close() error {
 
 // Sync flushes all buffers to disk ensuring all data is written
 func (b *bitcask) Sync() error {
+	b.mu.RLock()
+	if b.current.Readonly() {
+		b.mu.RUnlock()
+		return nil
+	}
+	b.mu.RUnlock()
+
 	if err := b.saveMetadata(); err != nil {
 		return err
 	}
 
 	return b.current.Sync()
+}
+
+// Readonly returns true if the database is currently opened in readonly mode, false otherwise
+func (b *bitcask) Readonly() bool {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+
+	return b.current.Readonly()
 }
 
 // Get fetches value for a key
@@ -89,6 +114,13 @@ func (b *bitcask) Has(key Key) bool {
 
 // Put stores the key and value in the database.
 func (b *bitcask) Put(key Key, value Value) error {
+	b.mu.RLock()
+	if b.current.Readonly() {
+		b.mu.RUnlock()
+		return ErrDatabaseReadonly
+	}
+	b.mu.RUnlock()
+
 	tx := b.Transaction()
 	defer tx.Discard()
 
@@ -211,15 +243,6 @@ func (b *bitcask) maybeRotate() error {
 	return nil
 }
 
-// put inserts a new (key, value). Both key and value are valid inputs.
-func (b *bitcask) put(key, value []byte) (int64, int64, error) {
-	if err := b.maybeRotate(); err != nil {
-		return -1, 0, fmt.Errorf("error rotating active datafile: %w", err)
-	}
-
-	return b.current.Write(internal.NewEntry(key, value))
-}
-
 // closeCurrentFile closes current datafile and makes it read only.
 func (b *bitcask) closeCurrentFile() error {
 	if err := b.current.Close(); err != nil {
@@ -259,7 +282,7 @@ func (b *bitcask) openNewWriteableFile() error {
 
 // reopen reloads a bitcask object with index and datafiles
 // caller of this method should take care of locking
-func (b *bitcask) reopen() error {
+func (b *bitcask) reopen(readonly bool) error {
 	datafiles, lastID, err := loadDatafiles(
 		b.path,
 		b.config.MaxKeySize,
@@ -275,7 +298,7 @@ func (b *bitcask) reopen() error {
 	}
 
 	current, err := data.NewOnDiskDatafile(
-		b.path, lastID, false,
+		b.path, lastID, readonly,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
 		b.config.FileMode,
@@ -296,10 +319,17 @@ func (b *bitcask) reopen() error {
 // Call this function periodically to reclaim disk space.
 func (b *bitcask) Merge() error {
 	b.mu.Lock()
+
+	if b.current.Readonly() {
+		b.mu.Unlock()
+		return ErrDatabaseReadonly
+	}
+
 	if b.isMerging {
 		b.mu.Unlock()
 		return ErrMergeInProgress
 	}
+
 	b.isMerging = true
 	b.mu.Unlock()
 	defer func() {
@@ -411,7 +441,7 @@ func (b *bitcask) Merge() error {
 	b.metadata.ReclaimableSpace = 0
 
 	// And finally reopen the database
-	return b.reopen()
+	return b.reopen(false)
 }
 
 // Open opens the database at the given path with optional options.
@@ -465,7 +495,14 @@ func Open(path string, options ...Option) (DB, error) {
 	}
 
 	if !ok {
-		return nil, ErrDatabaseLocked
+		if !cfg.AutoReadonly {
+			return nil, ErrDatabaseLocked
+		}
+
+		if err := db.reopen(true); err != nil {
+			return nil, err
+		}
+		return db, nil
 	}
 
 	if err := cfg.Save(configPath); err != nil {
@@ -477,7 +514,7 @@ func Open(path string, options ...Option) (DB, error) {
 			return nil, fmt.Errorf("recovering database: %s", err)
 		}
 	}
-	if err := db.reopen(); err != nil {
+	if err := db.reopen(false); err != nil {
 		return nil, err
 	}
 

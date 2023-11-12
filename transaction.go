@@ -34,7 +34,7 @@ type transaction struct {
 func (t *transaction) Discard() {}
 
 func (t *transaction) Commit() error {
-	return t.db.Write(t.batch)
+	return t.db.WriteBatch(t.batch)
 }
 
 func (t *transaction) Has(key Key) bool {
@@ -185,7 +185,7 @@ func (b *bitcask) Transaction(opts ...TransactionOption) Transaction {
 	defer b.mu.RUnlock()
 
 	current := data.NewInMemoryDatafile(-1, b.config.MaxKeySize, b.config.MaxValueSize)
-	previous := b.current.Readonly()
+	previous := b.current.ReopenReadonly()
 	datafiles := b.datafiles
 
 	txn := &transaction{

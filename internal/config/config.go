@@ -12,8 +12,9 @@ type Config struct {
 	MaxDatafileSize int         `json:"max_datafile_size"`
 	MaxKeySize      uint32      `json:"max_key_size"`
 	MaxValueSize    uint64      `json:"max_value_size"`
-	Sync            bool        `json:"sync"`
-	AutoRecovery    bool        `json:"autorecovery"`
+	SyncWrites      bool        `json:"sync_writes"`
+	AutoReadonly    bool        `json:"auto_readonly"`
+	AutoRecovery    bool        `json:"auto_recovery"`
 	DirMode         os.FileMode `json:"dir_mode"`
 	FileMode        os.FileMode `json:"file_mode"`
 }

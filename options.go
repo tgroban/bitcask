@@ -22,10 +22,13 @@ const (
 	// DefaultMaxValueSize is the default value size in bytes
 	DefaultMaxValueSize = uint64(1 << 16) // 65KB
 
-	// DefaultSync is the default file synchronization action
-	DefaultSync = false
+	// DefaultSyncWrites is the default file synchronization action
+	DefaultSyncWrites = false
 
-	// DefaultAutoRecovery is the default auto-recovery action.
+	// DefaultAutoReadonly is the default auto-readonly option, if set the database is automatically opened in readonly mode if already locked by another process
+	DefaultAutoReadonly = false
+
+	// DefaultAutoRecovery is the default auto-recovery action, if set will attempt to automatically recover the database if required
 	DefaultAutoRecovery = true
 )
 
@@ -37,10 +40,21 @@ func withConfig(src *config.Config) Option {
 		cfg.MaxDatafileSize = src.MaxDatafileSize
 		cfg.MaxKeySize = src.MaxKeySize
 		cfg.MaxValueSize = src.MaxValueSize
-		cfg.Sync = src.Sync
+		cfg.SyncWrites = src.SyncWrites
+		cfg.AutoReadonly = src.AutoReadonly
 		cfg.AutoRecovery = src.AutoRecovery
 		cfg.DirMode = src.DirMode
 		cfg.FileMode = src.FileMode
+		return nil
+	}
+}
+
+// WithAutoReadonly sets auto readonly mode, which if set automatically opens
+// the database in readonly mode if the database is already locked by another
+// process. The default behaviour is to return ErrDatabaseLocked.
+func WithAutoReadonly(enabled bool) Option {
+	return func(cfg *config.Config) error {
+		cfg.AutoReadonly = enabled
 		return nil
 	}
 }
@@ -95,11 +109,11 @@ func WithMaxValueSize(size uint64) Option {
 	}
 }
 
-// WithSync causes Sync() to be called on every key/value written increasing
-// durability and safety at the expense of performance
-func WithSync(sync bool) Option {
+// WithSyncWrites causes Sync() to be called on every key/value written increasing
+// durability and safety at the expense of write performance.
+func WithSyncWrites(enabled bool) Option {
 	return func(cfg *config.Config) error {
-		cfg.Sync = sync
+		cfg.SyncWrites = enabled
 		return nil
 	}
 }
@@ -109,7 +123,9 @@ func newDefaultConfig() *config.Config {
 		MaxDatafileSize: DefaultMaxDatafileSize,
 		MaxKeySize:      DefaultMaxKeySize,
 		MaxValueSize:    DefaultMaxValueSize,
-		Sync:            DefaultSync,
+		SyncWrites:      DefaultSyncWrites,
+		AutoReadonly:    DefaultAutoReadonly,
+		AutoRecovery:    DefaultAutoRecovery,
 		DirMode:         DefaultDirMode,
 		FileMode:        DefaultFileMode,
 	}

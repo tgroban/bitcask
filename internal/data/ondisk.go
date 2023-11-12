@@ -124,7 +124,14 @@ func (df *onDiskDatafile) Write(e internal.Entry) (int64, int64, error) {
 	return offset, n, nil
 }
 
-func (df *onDiskDatafile) Readonly() Datafile {
+func (df *onDiskDatafile) Readonly() bool {
+	df.RLock()
+	defer df.RUnlock()
+
+	return df.w == nil
+}
+
+func (df *onDiskDatafile) ReopenReadonly() Datafile {
 	df.RLock()
 	defer df.RUnlock()
 

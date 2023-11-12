@@ -51,7 +51,7 @@ bench: build
 
 test: build
 	@$(GOCMD) test -v \
-		-cover -coverprofile=coverage.txt -covermode=atomic \
+		-cover -coverprofile=coverage.out -covermode=atomic \
 		-coverpkg=$(shell go list) \
 		-race \
 		.

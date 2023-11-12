@@ -33,7 +33,9 @@ type Datafile interface {
 	Read() (internal.Entry, int64, error)
 	ReadAt(index, size int64) (internal.Entry, error)
 	Write(internal.Entry) (int64, int64, error)
-	Readonly() Datafile
+
+	Readonly() bool
+	ReopenReadonly() Datafile
 }
 
 // NewOnDiskDatafile opens an existing on disk datafile
@@ -64,6 +66,7 @@ func NewOnDiskDatafile(path string, id int, readonly bool, maxKeySize uint32, ma
 	}
 
 	if readonly {
+		w = nil
 		ra, err = mmap.Open(fn)
 		if err != nil {
 			return nil, err

@@ -97,9 +97,10 @@ type DB interface {
 	Sync() error
 
 	Len() int
+	Readonly() bool
 
 	Batch(...BatchOption) Batch
-	Write(Batch) error
+	WriteBatch(Batch) error
 
 	Transaction(...TransactionOption) Transaction
 

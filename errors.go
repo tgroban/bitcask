@@ -28,6 +28,9 @@ var (
 	// (typically opened by another process)
 	ErrDatabaseLocked = errors.New("error: database locked")
 
+	// ErrDatabaseReadonly is the error returned when the database has been opened in readonly mode
+	ErrDatabaseReadonly = errors.New("error: database is readonly")
+
 	// ErrInvalidRange is the error returned when the range scan is invalid
 	ErrInvalidRange = errors.New("error: invalid range")
 
@@ -39,37 +42,44 @@ var (
 	ErrMergeInProgress = errors.New("error: merge already in progress")
 )
 
-// ErrBadConfig is the error returned on failure to load the database config
+// ErrBadConfig is the error returned on failure to load the database config.
 type ErrBadConfig struct {
 	Err error
 }
 
-// Is ...
+// Is returns true if the provided target error is the same as ErrBadConfig.
 func (e *ErrBadConfig) Is(target error) bool {
 	if _, ok := target.(*ErrBadConfig); ok {
 		return true
 	}
 	return errors.Is(e.Err, target)
 }
+
+// Unwrap returns the underlying wrapped error that caused ErrBadConfig to be returned.
 func (e *ErrBadConfig) Unwrap() error { return e.Err }
+
+// Error implements the error interface.
 func (e *ErrBadConfig) Error() string {
 	return fmt.Sprintf("error reading config.json: %s", e.Err)
 }
 
-// ErrBadMetadata is the error returned on failure to load the database metadata
+// ErrBadMetadata is the error returned on failure to load the database metadata.
 type ErrBadMetadata struct {
 	Err error
 }
 
-// Is ...
+// Is returns true if the provided target error is the same as ErrBadConfig.
 func (e *ErrBadMetadata) Is(target error) bool {
-	if _, ok := target.(*ErrBadMetadata); ok {
+	if _, ok := target.(*ErrBadConfig); ok {
 		return true
 	}
 	return errors.Is(e.Err, target)
 }
 
+// Unwrap returns the underlying wrapped error that caused ErrBadMetadata to be returned.
 func (e *ErrBadMetadata) Unwrap() error { return e.Err }
+
+// Error implements the error interface.
 func (e *ErrBadMetadata) Error() string {
 	return fmt.Sprintf("error reading meta.json: %s", e.Err)
 }

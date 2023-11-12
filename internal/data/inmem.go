@@ -93,7 +93,9 @@ func (df *inMemoryDatafile) Write(e internal.Entry) (int64, int64, error) {
 	return offset, n, nil
 }
 
-func (df *inMemoryDatafile) Readonly() Datafile {
-	// No reason for this type of datafile to ever by read-only
+func (df *inMemoryDatafile) Readonly() bool { return true }
+
+func (df *inMemoryDatafile) ReopenReadonly() Datafile {
+	// No reason for this type of datafile to ever by readonly.
 	return df
 }

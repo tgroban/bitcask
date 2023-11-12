@@ -25,7 +25,7 @@ func TestBatch(t *testing.T) {
 		b.Put(Key("foo"), Value("bar"))
 		b.Put(Key("hello"), Value("world"))
 
-		assert.NoError(t, err, db.Write(b))
+		assert.NoError(t, err, db.WriteBatch(b))
 
 		tests := map[string]Value{
 			"foo":   Value("bar"),
