@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/viper"
 	"go.mills.io/bitcask/v2"
 	"go.mills.io/bitcask/v2/internal"
+	"go.mills.io/bitcask/v2/internal/codec"
 	"go.mills.io/bitcask/v2/internal/config"
-	"go.mills.io/bitcask/v2/internal/data/codec"
 	"go.mills.io/bitcask/v2/internal/index"
 )
 

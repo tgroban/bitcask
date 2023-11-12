@@ -7,7 +7,7 @@ import (
 	"golang.org/x/exp/mmap"
 
 	"go.mills.io/bitcask/v2/internal"
-	"go.mills.io/bitcask/v2/internal/data/codec"
+	"go.mills.io/bitcask/v2/internal/codec"
 )
 
 type onDiskDatafile struct {

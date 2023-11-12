@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"go.mills.io/bitcask/v2/internal"
+	"go.mills.io/bitcask/v2/internal/codec"
 	"go.mills.io/bitcask/v2/internal/config"
-	"go.mills.io/bitcask/v2/internal/data/codec"
 )
 
 // CheckAndRecover checks and recovers the last datafile.
