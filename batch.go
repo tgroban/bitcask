@@ -24,20 +24,6 @@ func defaultBatchOptions(cfg *config.Config) *batchOptions {
 // BatchOption ...
 type BatchOption func(b *batch)
 
-// WithBatchMaxKeySize sets the maximum key size option
-func WithBatchMaxKeySize(size uint32) BatchOption {
-	return func(batch *batch) {
-		batch.opts.maxKeySize = size
-	}
-}
-
-// WithBatchMaxValueSize sets the maximum value size option
-func WithBatchMaxValueSize(size uint64) BatchOption {
-	return func(batch *batch) {
-		batch.opts.maxValueSize = size
-	}
-}
-
 type batch struct {
 	db      DB
 	mu      sync.RWMutex

@@ -12,40 +12,19 @@ import (
 	"go.mills.io/bitcask/v2/internal/data"
 )
 
-type transactionOptions struct {
-	maxKeySize   uint32
-	maxValueSize uint64
-}
+type transactionOptions struct{}
 
 func defaultTransactionOptions(cfg *config.Config) *transactionOptions {
-	return &transactionOptions{
-		maxKeySize:   cfg.MaxKeySize,
-		maxValueSize: cfg.MaxValueSize,
-	}
+	return &transactionOptions{}
 }
 
 // TransactionOption ...
 type TransactionOption func(t *transaction)
 
-// WithTransactionMaxKeySize sets the maximum key size option
-func WithTransactionMaxKeySize(size uint32) TransactionOption {
-	return func(t *transaction) {
-		t.opts.maxKeySize = size
-	}
-}
-
-// WithTransactionMaxValueSize sets the maximum value size option
-func WithTransactionMaxValueSize(size uint64) TransactionOption {
-	return func(t *transaction) {
-		t.opts.maxValueSize = size
-	}
-}
-
 type transaction struct {
-	_db       *bitcask
 	db        DB
-	curr      data.Datafile
-	prev      data.Datafile
+	current   data.Datafile
+	previous  data.Datafile
 	datafiles map[int]data.Datafile
 	batch     Batch
 	trie      *iradix.Txn[internal.Item]
@@ -81,10 +60,10 @@ func (t *transaction) get(key []byte) (internal.Entry, error) {
 	}
 
 	switch item.FileID {
-	case t.curr.FileID():
-		df = t.curr
-	case t.prev.FileID():
-		df = t.prev
+	case t.current.FileID():
+		df = t.current
+	case t.previous.FileID():
+		df = t.previous
 	default:
 		df = t.datafiles[item.FileID]
 	}
@@ -108,7 +87,7 @@ func (t *transaction) Delete(key Key) error {
 		return err
 	}
 
-	_, _, err = t.curr.Write(entry)
+	_, _, err = t.current.Write(entry)
 	if err != nil {
 		return err
 	}
@@ -124,12 +103,12 @@ func (t *transaction) Put(key Key, value Value) error {
 		return err
 	}
 
-	offset, n, err := t.curr.Write(entry)
+	offset, n, err := t.current.Write(entry)
 	if err != nil {
 		return err
 	}
 
-	item := internal.Item{FileID: t.curr.FileID(), Offset: offset, Size: n}
+	item := internal.Item{FileID: t.current.FileID(), Offset: offset, Size: n}
 
 	_, _ = t.trie.Insert(key, item)
 
@@ -205,17 +184,14 @@ func (b *bitcask) Transaction(opts ...TransactionOption) Transaction {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	curr := data.NewInMemoryDatafile(-1, b.config.MaxKeySize, b.config.MaxValueSize)
-
-	prev := b.current.Readonly()
-
+	current := data.NewInMemoryDatafile(-1, b.config.MaxKeySize, b.config.MaxValueSize)
+	previous := b.current.Readonly()
 	datafiles := b.datafiles
 
 	txn := &transaction{
-		_db:       b,
 		db:        b,
-		curr:      curr,
-		prev:      prev,
+		current:   current,
+		previous:  previous,
 		datafiles: datafiles,
 		batch:     b.Batch(),
 		trie:      b.trie.Txn(),
