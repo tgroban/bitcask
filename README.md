@@ -170,59 +170,35 @@ $ make bench
 goos: darwin
 goarch: arm64
 pkg: go.mills.io/bitcask
-BenchmarkGet
-BenchmarkGet/128B
+
 BenchmarkGet/128B-10             1029229              1191 ns/op         107.46 MB/s        4864 B/op         14 allocs/op
-BenchmarkGet/256B
 BenchmarkGet/256B-10              916785              1190 ns/op         215.16 MB/s        4992 B/op         14 allocs/op
-BenchmarkGet/512B
 BenchmarkGet/512B-10              831607              1261 ns/op         406.19 MB/s        5280 B/op         14 allocs/op
-BenchmarkGet/1K
 BenchmarkGet/1K-10                796448              1384 ns/op         740.06 MB/s        5856 B/op         14 allocs/op
-BenchmarkGet/2K
 BenchmarkGet/2K-10                612469              1724 ns/op        1187.83 MB/s        7008 B/op         14 allocs/op
-BenchmarkGet/4K
 BenchmarkGet/4K-10                515680              2314 ns/op        1770.19 MB/s        9568 B/op         14 allocs/op
-BenchmarkGet/8K
 BenchmarkGet/8K-10                375813              3231 ns/op        2535.32 MB/s       14176 B/op         14 allocs/op
-BenchmarkGet/16K
 BenchmarkGet/16K-10               236959              5115 ns/op        3203.28 MB/s       23136 B/op         14 allocs/op
-BenchmarkGet/32K
 BenchmarkGet/32K-10               129828              9449 ns/op        3467.77 MB/s       45664 B/op         14 allocs/op
-BenchmarkPut
-BenchmarkPut/128BNoSync
+
 BenchmarkPut/128BNoSync-10        249405              5116 ns/op          25.02 MB/s        6737 B/op         46 allocs/op
-BenchmarkPut/256BNoSync
 BenchmarkPut/256BNoSync-10        155542              6896 ns/op          37.12 MB/s        6867 B/op         46 allocs/op
-BenchmarkPut/1KNoSync
 BenchmarkPut/1KNoSync-10           72939             19902 ns/op          51.45 MB/s        7740 B/op         46 allocs/op
-BenchmarkPut/2KNoSync
 BenchmarkPut/2KNoSync-10           37819             33780 ns/op          60.63 MB/s        8904 B/op         46 allocs/op
-BenchmarkPut/4KNoSync
 BenchmarkPut/4KNoSync-10           18554             70200 ns/op          58.35 MB/s       18914 B/op         47 allocs/op
-BenchmarkPut/8KNoSync
 BenchmarkPut/8KNoSync-10            8276            167674 ns/op          48.86 MB/s       20249 B/op         47 allocs/op
-BenchmarkPut/16KNoSync
 BenchmarkPut/16KNoSync-10           3660            333656 ns/op          49.10 MB/s       29291 B/op         47 allocs/op
-BenchmarkPut/32KNoSync
 BenchmarkPut/32KNoSync-10           2275            561683 ns/op          58.34 MB/s       52000 B/op         48 allocs/op
-BenchmarkPut/128BSync
+
 BenchmarkPut/128BSync-10             258           5149745 ns/op           0.02 MB/s        6736 B/op         46 allocs/op
-BenchmarkPut/256BSync
 BenchmarkPut/256BSync-10             211           5138904 ns/op           0.05 MB/s        6864 B/op         46 allocs/op
-BenchmarkPut/1KSync
 BenchmarkPut/1KSync-10               207           5356101 ns/op           0.19 MB/s        7728 B/op         46 allocs/op
-BenchmarkPut/2KSync
 BenchmarkPut/2KSync-10               247           5212069 ns/op           0.39 MB/s        8932 B/op         46 allocs/op
-BenchmarkPut/4KSync
 BenchmarkPut/4KSync-10               207           5043624 ns/op           0.81 MB/s       18924 B/op         47 allocs/op
-BenchmarkPut/8KSync
 BenchmarkPut/8KSync-10               208           5411918 ns/op           1.51 MB/s       20204 B/op         47 allocs/op
-BenchmarkPut/16KSync
 BenchmarkPut/16KSync-10              234           5367222 ns/op           3.05 MB/s       29261 B/op         47 allocs/op
-BenchmarkPut/32KSync
 BenchmarkPut/32KSync-10              198           5594519 ns/op           5.86 MB/s       51996 B/op         48 allocs/op
-BenchmarkScan
+
 BenchmarkScan-10                 1112818              1066 ns/op            4986 B/op         22 allocs/op
 PASS
 ```
