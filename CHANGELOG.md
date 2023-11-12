@@ -1,4 +1,24 @@
 
+<a name="v2.0.0"></a>
+## [v2.0.0](https://go.mills.io/bitcask/compare/v1.0.2...v2.0.0) (2023-11-12)
+
+### Bug Fixes
+
+* Fix benchmark results
+* Fix install target
+* Fix install target and versioning
+
+### Features
+
+* Add support for high-level data types (#253)
+
+### Updates
+
+* Update performance section (again)
+* Update Performance section in README
+* Update README
+
+
 <a name="v1.0.2"></a>
 ## [v1.0.2](https://go.mills.io/bitcask/compare/v1.0.1...v1.0.2) (2021-11-01)
 
@@ -6,6 +26,10 @@
 
 * Fix a data race in Datafile.ReadAt()
 * Fix release tool
+
+### Updates
+
+* Update CHANGELOG for v1.0.2
 
 
 <a name="v1.0.1"></a>
