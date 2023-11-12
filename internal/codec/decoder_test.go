@@ -7,12 +7,44 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mills.io/bitcask/v2/internal"
 )
 
+func BenchmarkDecoder(b *testing.B) {
+	data := []byte{0x0, 0x0, 0x0, 0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x7, 0x6d, 0x79, 0x6b, 0x65, 0x79, 0x6d, 0x79, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x0, 0x6, 0x51, 0xbd}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		decoder := NewDecoder(bytes.NewBuffer(data), 16, 32)
+		b.StartTimer()
+
+		_, err := decoder.Decode(&internal.Entry{})
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func TestDecoder(t *testing.T) {
+	buf := bytes.NewBuffer([]byte{0x0, 0x0, 0x0, 0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x7, 0x6d, 0x79, 0x6b, 0x65, 0x79, 0x6d, 0x79, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x0, 0x6, 0x51, 0xbd})
+	decoder := NewDecoder(buf, 16, 32)
+
+	expected := internal.Entry{
+		Key:      []byte("mykey"),
+		Value:    []byte("myvalue"),
+		Checksum: 414141,
+	}
+	actual := internal.Entry{}
+	_, err := decoder.Decode(&actual)
+	require.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+}
+
 func TestDecodeOnNilEntry(t *testing.T) {
-	t.Parallel()
-	decoder := NewDecoder(&bytes.Buffer{}, 1, 1)
+	var buf bytes.Buffer
+	decoder := NewDecoder(&buf, 1, 1)
 
 	_, err := decoder.Decode(nil)
 	if assert.Error(t, err) {
@@ -21,7 +53,6 @@ func TestDecodeOnNilEntry(t *testing.T) {
 }
 
 func TestShortPrefix(t *testing.T) {
-	t.Parallel()
 	maxKeySize, maxValueSize := uint32(10), uint64(20)
 	prefix := make([]byte, keySize+valueSize)
 	binary.BigEndian.PutUint32(prefix, 1)
@@ -105,16 +136,16 @@ func TestTruncatedData(t *testing.T) {
 }
 
 func TestDecodeWithoutPrefix(t *testing.T) {
-	e := internal.Entry{}
+	actual := internal.Entry{}
 	buf := []byte{0x0, 0x0, 0x0, 0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x7, 0x6d, 0x79, 0x6b, 0x65, 0x79, 0x6d, 0x79, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x0, 0x6, 0x51, 0xbd}
 	valueOffset := uint32(5)
-	expectedEntry := internal.Entry{
+	expected := internal.Entry{
 		Key:      []byte("mykey"),
 		Value:    []byte("myvalue"),
 		Checksum: 414141,
 	}
-	decodeWithoutPrefix(buf[keySize+valueSize:], valueOffset, &e)
-	assert.Equal(t, expectedEntry.Key, e.Key)
-	assert.Equal(t, expectedEntry.Value, e.Value)
-	assert.Equal(t, expectedEntry.Checksum, e.Checksum)
+	decodeWithoutPrefix(buf[keySize+valueSize:], valueOffset, &actual)
+	assert.Equal(t, expected.Key, actual.Key)
+	assert.Equal(t, expected.Value, actual.Value)
+	assert.Equal(t, expected.Checksum, actual.Checksum)
 }

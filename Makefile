@@ -49,9 +49,6 @@ profile: build
 bench: build
 	@$(GOCMD) test -v -run=XXX -benchmem -bench=. .
 
-mocks:
-	@mockery -all -case underscore -output ./internal/mocks -recursive
-
 test: build
 	@$(GOCMD) test -v \
 		-cover -coverprofile=coverage.txt -covermode=atomic \
@@ -60,7 +57,6 @@ test: build
 		.
 
 setup:
-	@$(GOCMD) get github.com/vektra/mockery/...
 
 clean:
 	@git clean -f -d -X

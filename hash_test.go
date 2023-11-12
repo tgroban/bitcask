@@ -10,7 +10,7 @@ import (
 func TestHash(t *testing.T) {
 	assert := assert.New(t)
 
-	testdir, err := ioutil.TempDir("", "bitcask")
+	testDir, err := ioutil.TempDir("", "bitcask")
 	assert.NoError(err)
 
 	var (
@@ -20,7 +20,7 @@ func TestHash(t *testing.T) {
 
 	t.Run("Setup", func(t *testing.T) {
 		t.Run("Open", func(t *testing.T) {
-			db, err = Open(testdir)
+			db, err = Open(testDir)
 			assert.NoError(err)
 			h = db.Hash([]byte("foo"))
 		})
