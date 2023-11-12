@@ -1,10 +1,22 @@
 
+<a name="v2.0.2"></a>
+## [v2.0.2](https://go.mills.io/bitcask/v2/compare/v2.0.1...v2.0.2) (2023-11-12)
+
+### Bug Fixes
+
+* Fix write performance, cleanup code and fix internal tests
+
+
 <a name="v2.0.1"></a>
 ## [v2.0.1](https://go.mills.io/bitcask/v2/compare/v2.0.0...v2.0.1) (2023-11-12)
 
 ### Bug Fixes
 
 * Fix v2 import path
+
+### Updates
+
+* Update CHANGELOG for v2.0.1
 
 
 <a name="v2.0.0"></a>
