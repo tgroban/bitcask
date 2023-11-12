@@ -49,9 +49,5 @@ func (i *indexer) Save(t *iradix.Tree[internal.Item], path string) error {
 		return err
 	}
 
-	if err := f.Sync(); err != nil {
-		return err
-	}
-
 	return f.Close()
 }

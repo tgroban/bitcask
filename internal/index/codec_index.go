@@ -47,14 +47,10 @@ func readKeyBytes(r io.Reader, maxKeySize uint32) ([]byte, error) {
 }
 
 func writeBytes(b []byte, w io.Writer) error {
-	s := make([]byte, int32Size)
-	binary.BigEndian.PutUint32(s, uint32(len(b)))
-	_, err := w.Write(s)
-	if err != nil {
+	if err := binary.Write(w, binary.BigEndian, uint32(len(b))); err != nil {
 		return err
 	}
-	_, err = w.Write(b)
-	if err != nil {
+	if _, err := w.Write(b); err != nil {
 		return err
 	}
 	return nil
@@ -75,12 +71,13 @@ func readItem(r io.Reader) (internal.Item, error) {
 }
 
 func writeItem(item internal.Item, w io.Writer) error {
-	buf := make([]byte, (fileIDSize + offsetSize + sizeSize))
-	binary.BigEndian.PutUint32(buf[:fileIDSize], uint32(item.FileID))
-	binary.BigEndian.PutUint64(buf[fileIDSize:(fileIDSize+offsetSize)], uint64(item.Offset))
-	binary.BigEndian.PutUint64(buf[(fileIDSize+offsetSize):], uint64(item.Size))
-	_, err := w.Write(buf)
-	if err != nil {
+	if err := binary.Write(w, binary.BigEndian, uint32(item.FileID)); err != nil {
+		return err
+	}
+	if err := binary.Write(w, binary.BigEndian, uint64(item.Offset)); err != nil {
+		return err
+	}
+	if err := binary.Write(w, binary.BigEndian, uint64(item.Size)); err != nil {
 		return err
 	}
 	return nil

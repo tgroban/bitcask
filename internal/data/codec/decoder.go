@@ -87,7 +87,7 @@ func getKeyValueSizes(buf []byte, maxKeySize uint32, maxValueSize uint64) (uint3
 func decodeWithoutPrefix(buf []byte, valueOffset uint32, v *internal.Entry) {
 	v.Key = buf[:valueOffset]
 	v.Value = buf[valueOffset : len(buf)-checksumSize]
-	v.Checksum = binary.BigEndian.Uint32(buf[len(buf)-checksumSize : len(buf)])
+	v.Checksum = binary.BigEndian.Uint32(buf[len(buf)-checksumSize:])
 }
 
 func getKeyExpiry(buf []byte) *time.Time {

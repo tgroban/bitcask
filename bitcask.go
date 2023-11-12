@@ -30,7 +30,7 @@ type bitcask struct {
 	config    *config.Config
 	options   []Option
 	path      string
-	curr      data.Datafile
+	current   data.Datafile
 	datafiles map[int]data.Datafile
 	trie      *iradix.Tree[internal.Item]
 	indexer   index.Indexer[internal.Item]
@@ -65,7 +65,7 @@ func (b *bitcask) close() error {
 		}
 	}
 
-	return b.curr.Close()
+	return b.current.Close()
 }
 
 // Sync flushes all buffers to disk ensuring all data is written
@@ -74,7 +74,7 @@ func (b *bitcask) Sync() error {
 		return err
 	}
 
-	return b.curr.Sync()
+	return b.current.Sync()
 }
 
 // Get fetches value for a key
@@ -152,8 +152,8 @@ func (b *bitcask) read(key []byte) (internal.Entry, error) {
 		return internal.Entry{}, ErrKeyNotFound
 	}
 
-	if item.FileID == b.curr.FileID() {
-		df = b.curr
+	if item.FileID == b.current.FileID() {
+		df = b.current
 	} else {
 		df = b.datafiles[item.FileID]
 	}
@@ -172,17 +172,17 @@ func (b *bitcask) read(key []byte) (internal.Entry, error) {
 }
 
 func (b *bitcask) maybeRotate() error {
-	size := b.curr.Size()
+	size := b.current.Size()
 	if size < int64(b.config.MaxDatafileSize) {
 		return nil
 	}
 
-	err := b.curr.Close()
+	err := b.current.Close()
 	if err != nil {
 		return err
 	}
 
-	id := b.curr.FileID()
+	id := b.current.FileID()
 
 	df, err := data.NewOnDiskDatafile(
 		b.path, id, true,
@@ -196,8 +196,8 @@ func (b *bitcask) maybeRotate() error {
 
 	b.datafiles[id] = df
 
-	id = b.curr.FileID() + 1
-	curr, err := data.NewOnDiskDatafile(
+	id = b.current.FileID() + 1
+	current, err := data.NewOnDiskDatafile(
 		b.path, id, false,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
@@ -206,11 +206,7 @@ func (b *bitcask) maybeRotate() error {
 	if err != nil {
 		return err
 	}
-	b.curr = curr
-	err = b.saveIndexes()
-	if err != nil {
-		return err
-	}
+	b.current = current
 
 	return nil
 }
@@ -221,16 +217,16 @@ func (b *bitcask) put(key, value []byte) (int64, int64, error) {
 		return -1, 0, fmt.Errorf("error rotating active datafile: %w", err)
 	}
 
-	return b.curr.Write(internal.NewEntry(key, value))
+	return b.current.Write(internal.NewEntry(key, value))
 }
 
 // closeCurrentFile closes current datafile and makes it read only.
 func (b *bitcask) closeCurrentFile() error {
-	if err := b.curr.Close(); err != nil {
+	if err := b.current.Close(); err != nil {
 		return err
 	}
 
-	id := b.curr.FileID()
+	id := b.current.FileID()
 	df, err := data.NewOnDiskDatafile(
 		b.path, id, true,
 		b.config.MaxKeySize,
@@ -247,8 +243,8 @@ func (b *bitcask) closeCurrentFile() error {
 
 // openNewWriteableFile opens new datafile for writing data
 func (b *bitcask) openNewWriteableFile() error {
-	id := b.curr.FileID() + 1
-	curr, err := data.NewOnDiskDatafile(
+	id := b.current.FileID() + 1
+	current, err := data.NewOnDiskDatafile(
 		b.path, id, false,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
@@ -257,7 +253,7 @@ func (b *bitcask) openNewWriteableFile() error {
 	if err != nil {
 		return err
 	}
-	b.curr = curr
+	b.current = current
 	return nil
 }
 
@@ -278,7 +274,7 @@ func (b *bitcask) reopen() error {
 		return err
 	}
 
-	curr, err := data.NewOnDiskDatafile(
+	current, err := data.NewOnDiskDatafile(
 		b.path, lastID, false,
 		b.config.MaxKeySize,
 		b.config.MaxValueSize,
@@ -289,7 +285,7 @@ func (b *bitcask) reopen() error {
 	}
 
 	b.trie = t
-	b.curr = curr
+	b.current = current
 	b.datafiles = datafiles
 
 	return nil
@@ -504,14 +500,7 @@ func (b *bitcask) Backup(path string) error {
 
 // saveIndex saves index currently in memory to disk
 func (b *bitcask) saveIndexes() error {
-	tempIdx := "temp_index"
-	if err := b.indexer.Save(b.trie, filepath.Join(b.path, tempIdx)); err != nil {
-		return err
-	}
-	if err := os.Rename(filepath.Join(b.path, tempIdx), filepath.Join(b.path, "index")); err != nil {
-		return err
-	}
-	return nil
+	return b.indexer.Save(b.trie, filepath.Join(b.path, "index"))
 }
 
 // saveMetadata saves metadata into disk

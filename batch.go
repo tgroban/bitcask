@@ -112,13 +112,13 @@ func (b *bitcask) Write(batch Batch) error {
 			return fmt.Errorf("error rotating active datafile: %w", err)
 		}
 
-		offset, n, err := b.curr.Write(entry)
+		offset, n, err := b.current.Write(entry)
 		if err != nil {
 			return err
 		}
 
 		if b.config.Sync {
-			if err := b.curr.Sync(); err != nil {
+			if err := b.current.Sync(); err != nil {
 				return err
 			}
 		}
@@ -130,7 +130,7 @@ func (b *bitcask) Write(batch Batch) error {
 			if oldItem, found := b.trie.Root().Get(entry.Key); found {
 				b.metadata.ReclaimableSpace += oldItem.Size
 			}
-			item := internal.Item{FileID: b.curr.FileID(), Offset: offset, Size: n}
+			item := internal.Item{FileID: b.current.FileID(), Offset: offset, Size: n}
 			b.trie, _, _ = b.trie.Insert(entry.Key, item)
 		} else {
 			if oldItem, found := b.trie.Root().Get(entry.Key); found {

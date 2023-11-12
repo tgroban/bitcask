@@ -207,7 +207,7 @@ func (b *bitcask) Transaction(opts ...TransactionOption) Transaction {
 
 	curr := data.NewInMemoryDatafile(-1, b.config.MaxKeySize, b.config.MaxValueSize)
 
-	prev := b.curr.Readonly()
+	prev := b.current.Readonly()
 
 	datafiles := b.datafiles
 

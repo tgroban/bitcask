@@ -1,6 +1,7 @@
 *~*
 *.db
 *.bak
+*.prof
 **.envrc
 **/.DS_Store
 
@@ -11,5 +12,6 @@
 
 /bitcask
 /bitcaskd
+/bitcask.test
 /cmd/bitcask/bitcask
 /cmd/bitcaskd/bitcaskd

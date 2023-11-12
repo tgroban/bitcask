@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/binary"
 	"io"
+	"sync"
 
 	"github.com/pkg/errors"
 
@@ -19,6 +20,15 @@ const (
 	MetaInfoSize = keySize + valueSize + checksumSize
 )
 
+var bufPool = sync.Pool{
+	New: func() any {
+		// The Pool's New function should generally only return pointer
+		// types, since a pointer can be put into the return interface
+		// value without an allocation:
+		return make([]byte, keySize+valueSize)
+	},
+}
+
 // NewEncoder creates a streaming Entry encoder.
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: bufio.NewWriter(w)}
@@ -33,9 +43,12 @@ type Encoder struct {
 // Encode takes any Entry and streams it to the underlying writer.
 // Messages are framed with a key-length and value-length prefix.
 func (e *Encoder) Encode(msg internal.Entry) (int64, error) {
-	var bufKeyValue = make([]byte, keySize+valueSize)
+	//var bufKeyValue = make([]byte, keySize+valueSize)
+
+	bufKeyValue := bufPool.Get().([]byte)
 	binary.BigEndian.PutUint32(bufKeyValue[:keySize], uint32(len(msg.Key)))
 	binary.BigEndian.PutUint64(bufKeyValue[keySize:keySize+valueSize], uint64(len(msg.Value)))
+
 	if _, err := e.w.Write(bufKeyValue); err != nil {
 		return 0, errors.Wrap(err, "failed writing key & value length prefix")
 	}
