@@ -166,40 +166,64 @@ Benchmarks run on a 11" MacBook with a 1.4Ghz Intel Core i7:
 
 ```sh
 $ make bench
-...
+---
 goos: darwin
-goarch: amd64
+goarch: arm64
 pkg: go.mills.io/bitcask
-
-BenchmarkGet/128B-4         	  316515	      3263 ns/op	  39.22 MB/s	     160 B/op	       1 allocs/op
-BenchmarkGet/256B-4         	  382551	      3204 ns/op	  79.90 MB/s	     288 B/op	       1 allocs/op
-BenchmarkGet/512B-4         	  357216	      3835 ns/op	 133.51 MB/s	     576 B/op	       1 allocs/op
-BenchmarkGet/1K-4           	  274958	      4429 ns/op	 231.20 MB/s	    1152 B/op	       1 allocs/op
-BenchmarkGet/2K-4           	  227764	      5013 ns/op	 408.55 MB/s	    2304 B/op	       1 allocs/op
-BenchmarkGet/4K-4           	  187557	      5534 ns/op	 740.15 MB/s	    4864 B/op	       1 allocs/op
-BenchmarkGet/8K-4           	  153546	      7652 ns/op	1070.56 MB/s	    9472 B/op	       1 allocs/op
-BenchmarkGet/16K-4          	  115549	     10272 ns/op	1594.95 MB/s	   18432 B/op	       1 allocs/op
-BenchmarkGet/32K-4          	   69592	     16405 ns/op	1997.39 MB/s	   40960 B/op	       1 allocs/op
-
-BenchmarkPut/128BNoSync-4   	  123519	     11094 ns/op	  11.54 MB/s	      49 B/op	       2 allocs/op
-BenchmarkPut/256BNoSync-4   	   84662	     13398 ns/op	  19.11 MB/s	      50 B/op	       2 allocs/op
-BenchmarkPut/1KNoSync-4     	   46345	     24855 ns/op	  41.20 MB/s	      58 B/op	       2 allocs/op
-BenchmarkPut/2KNoSync-4     	   28820	     43817 ns/op	  46.74 MB/s	      68 B/op	       2 allocs/op
-BenchmarkPut/4KNoSync-4     	   13976	     90059 ns/op	  45.48 MB/s	      89 B/op	       2 allocs/op
-BenchmarkPut/8KNoSync-4     	    7852	    155101 ns/op	  52.82 MB/s	     130 B/op	       2 allocs/op
-BenchmarkPut/16KNoSync-4    	    4848	    238113 ns/op	  68.81 MB/s	     226 B/op	       2 allocs/op
-BenchmarkPut/32KNoSync-4    	    2564	    391483 ns/op	  83.70 MB/s	     377 B/op	       3 allocs/op
-
-BenchmarkPut/128BSync-4     	     260	   4611273 ns/op	   0.03 MB/s	      48 B/op	       2 allocs/op
-BenchmarkPut/256BSync-4     	     265	   4665506 ns/op	   0.05 MB/s	      48 B/op	       2 allocs/op
-BenchmarkPut/1KSync-4       	     256	   4757334 ns/op	   0.22 MB/s	      48 B/op	       2 allocs/op
-BenchmarkPut/2KSync-4       	     255	   4996788 ns/op	   0.41 MB/s	      92 B/op	       2 allocs/op
-BenchmarkPut/4KSync-4       	     222	   5136481 ns/op	   0.80 MB/s	      98 B/op	       2 allocs/op
-BenchmarkPut/8KSync-4       	     223	   5530824 ns/op	   1.48 MB/s	      99 B/op	       2 allocs/op
-BenchmarkPut/16KSync-4      	     213	   5717880 ns/op	   2.87 MB/s	     202 B/op	       2 allocs/op
-BenchmarkPut/32KSync-4      	     211	   5835948 ns/op	   5.61 MB/s	     355 B/op	       3 allocs/op
-
-BenchmarkScan-4             	  568696	      2036 ns/op	     392 B/op	      33 allocs/op
+BenchmarkGet
+BenchmarkGet/128B
+BenchmarkGet/128B-10             1029229              1191 ns/op         107.46 MB/s        4864 B/op         14 allocs/op
+BenchmarkGet/256B
+BenchmarkGet/256B-10              916785              1190 ns/op         215.16 MB/s        4992 B/op         14 allocs/op
+BenchmarkGet/512B
+BenchmarkGet/512B-10              831607              1261 ns/op         406.19 MB/s        5280 B/op         14 allocs/op
+BenchmarkGet/1K
+BenchmarkGet/1K-10                796448              1384 ns/op         740.06 MB/s        5856 B/op         14 allocs/op
+BenchmarkGet/2K
+BenchmarkGet/2K-10                612469              1724 ns/op        1187.83 MB/s        7008 B/op         14 allocs/op
+BenchmarkGet/4K
+BenchmarkGet/4K-10                515680              2314 ns/op        1770.19 MB/s        9568 B/op         14 allocs/op
+BenchmarkGet/8K
+BenchmarkGet/8K-10                375813              3231 ns/op        2535.32 MB/s       14176 B/op         14 allocs/op
+BenchmarkGet/16K
+BenchmarkGet/16K-10               236959              5115 ns/op        3203.28 MB/s       23136 B/op         14 allocs/op
+BenchmarkGet/32K
+BenchmarkGet/32K-10               129828              9449 ns/op        3467.77 MB/s       45664 B/op         14 allocs/op
+BenchmarkPut
+BenchmarkPut/128BNoSync
+BenchmarkPut/128BNoSync-10        249405              5116 ns/op          25.02 MB/s        6737 B/op         46 allocs/op
+BenchmarkPut/256BNoSync
+BenchmarkPut/256BNoSync-10        155542              6896 ns/op          37.12 MB/s        6867 B/op         46 allocs/op
+BenchmarkPut/1KNoSync
+BenchmarkPut/1KNoSync-10           72939             19902 ns/op          51.45 MB/s        7740 B/op         46 allocs/op
+BenchmarkPut/2KNoSync
+BenchmarkPut/2KNoSync-10           37819             33780 ns/op          60.63 MB/s        8904 B/op         46 allocs/op
+BenchmarkPut/4KNoSync
+BenchmarkPut/4KNoSync-10           18554             70200 ns/op          58.35 MB/s       18914 B/op         47 allocs/op
+BenchmarkPut/8KNoSync
+BenchmarkPut/8KNoSync-10            8276            167674 ns/op          48.86 MB/s       20249 B/op         47 allocs/op
+BenchmarkPut/16KNoSync
+BenchmarkPut/16KNoSync-10           3660            333656 ns/op          49.10 MB/s       29291 B/op         47 allocs/op
+BenchmarkPut/32KNoSync
+BenchmarkPut/32KNoSync-10           2275            561683 ns/op          58.34 MB/s       52000 B/op         48 allocs/op
+BenchmarkPut/128BSync
+BenchmarkPut/128BSync-10             258           5149745 ns/op           0.02 MB/s        6736 B/op         46 allocs/op
+BenchmarkPut/256BSync
+BenchmarkPut/256BSync-10             211           5138904 ns/op           0.05 MB/s        6864 B/op         46 allocs/op
+BenchmarkPut/1KSync
+BenchmarkPut/1KSync-10               207           5356101 ns/op           0.19 MB/s        7728 B/op         46 allocs/op
+BenchmarkPut/2KSync
+BenchmarkPut/2KSync-10               247           5212069 ns/op           0.39 MB/s        8932 B/op         46 allocs/op
+BenchmarkPut/4KSync
+BenchmarkPut/4KSync-10               207           5043624 ns/op           0.81 MB/s       18924 B/op         47 allocs/op
+BenchmarkPut/8KSync
+BenchmarkPut/8KSync-10               208           5411918 ns/op           1.51 MB/s       20204 B/op         47 allocs/op
+BenchmarkPut/16KSync
+BenchmarkPut/16KSync-10              234           5367222 ns/op           3.05 MB/s       29261 B/op         47 allocs/op
+BenchmarkPut/32KSync
+BenchmarkPut/32KSync-10              198           5594519 ns/op           5.86 MB/s       51996 B/op         48 allocs/op
+BenchmarkScan
+BenchmarkScan-10                 1112818              1066 ns/op            4986 B/op         22 allocs/op
 PASS
 ```
 
