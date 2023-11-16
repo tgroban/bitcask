@@ -80,6 +80,7 @@ type Types interface {
 	Hash(Key) *Hash
 	List(Key) *List
 	SortedSet(Key) *SortedSet
+	Collection(name string) *Collection
 }
 
 // DB is an interface that describes the public facing API of a Bitcask database

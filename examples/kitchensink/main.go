@@ -1,10 +1,18 @@
+// Package main demonstrates all features of Bitcask (the kitchen sink)
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"go.mills.io/bitcask/v2"
 )
+
+// User is a data model for holding users and their age
+type User struct {
+	Name string
+	Age  int
+}
 
 func main() {
 	db, err := bitcask.Open("test.db")
@@ -52,5 +60,27 @@ func main() {
 		bitcask.Int64ToScore(300), bitcask.Key("Joe"),
 	); err != nil {
 		log.Fatal(err)
+	}
+
+	c := db.Collection("users")
+
+	if err := c.Add("prologic", User{"James", 21}); err != nil {
+		log.Fatal(err)
+	}
+	// name is made-up
+	if err := c.Add("bob", User{"Bob", 99}); err != nil {
+		log.Fatal(err)
+	}
+	// name is made-up
+	if err := c.Add("frank", User{"Frank", 37}); err != nil {
+		log.Fatal(err)
+	}
+
+	var users []User
+	if err := c.List(&users); err != nil {
+		log.Fatal(err)
+	}
+	for _, user := range users {
+		fmt.Printf("%+v\n", user)
 	}
 }
